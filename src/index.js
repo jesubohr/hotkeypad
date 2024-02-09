@@ -48,7 +48,9 @@ export default class HotKeyPad {
 
     if (placeholder && placeholder !== '') this.#placeholder = placeholder
     if (hideBreadcrumbs) this.#hideBreadcrumbs = hideBreadcrumbs
-    if (activationLetter && activationLetter !== '') { this.#activationLetter = activationLetter }
+    if (activationLetter && activationLetter !== '') {
+      this.#activationLetter = activationLetter
+    }
     if (closeKey && closeKey !== '') this.#closeKey = closeKey
 
     this.#checkTagOptions()
@@ -140,6 +142,17 @@ export default class HotKeyPad {
     this.#setListeners()
   }
 
+  #activateItem (item) {
+    this.#commands.find(({ hotkey, handler }) => {
+      console.log(item, item.getAttribute('data-hotkey'))
+      if (item.getAttribute('data-hotkey') === hotkey) {
+        handler()
+        this.close()
+      }
+      return false
+    })
+  }
+
   #setListeners () {
     // Listen for hotkey combinations registered in the hotkeypad
     this.instance.addEventListener('keydown', (event) => {
@@ -176,15 +189,9 @@ export default class HotKeyPad {
     })
 
     // Listen for click events on the items
-    this.#items.forEach((item) => {
-      item.addEventListener('click', () => {
-        const hotkey = item.getAttribute('data-hotkey')
-        const currentItem = this.#commands.find(
-          (info) => info.hotkey === hotkey
-        )
-        currentItem?.handler()
-        this.close()
-      })
+    this.#container.addEventListener('click', (event) => {
+      if (event.target.tagName === 'LI') this.#activateItem(event.target)
+      if (event.target.parentElement.tagName === 'LI') this.#activateItem(event.target.parentElement)
     })
 
     // Listen for the keyboard navigation events
@@ -198,7 +205,7 @@ export default class HotKeyPad {
 
       if (event.key === 'Enter') {
         event.preventDefault()
-        items[this.currentIndex].click()
+        this.#activateItem(items[this.currentIndex])
         items[this.currentIndex].removeAttribute('data-active')
         this.currentIndex = 0
       }
