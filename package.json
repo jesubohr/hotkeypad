@@ -1,0 +1,23 @@
+{
+  "name": "hotkeypad",
+  "version": "1.0.0",
+  "description": "A simple and beautiful command keyboard shortcut for your web app.",
+  "main": "./src/index.js",
+  "scripts": {
+    "lint": "standard ./src/*.js"
+  },
+  "keywords": [
+    "hotkey",
+    "keyboard",
+    "shortcut",
+    "command"
+  ],
+  "author": "Jesus Borrero (jesubohr)",
+  "license": "MIT",
+  "devDependencies": {
+    "standard": "17.1.0"
+  },
+  "eslintConfig": {
+    "extends": "standard"
+  }
+}

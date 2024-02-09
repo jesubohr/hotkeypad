@@ -1,0 +1,205 @@
+#hotkeypad {
+  --hotkeypad-bg-kbd: #f9fafb;
+  --hotkeypad-bg-backdrop: #fff;
+  --hotkeypad-bg-container: #fff;
+  --hotkeypad-bg-item-hover: #f3f4f6;
+  --hotkeypad-border-container: #d1d5db;
+  --hotkeypad-border-container-hover: #9ca3af;
+  --hotkeypad-fg-muted: #4b5563;
+  --hotkeypad-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+#hotkeypad.dark {
+  --hotkeypad-bg-kbd: #1f2937;
+  --hotkeypad-bg-backdrop: #000;
+  --hotkeypad-bg-container: #1f2937;
+  --hotkeypad-bg-item-hover: #161e2e;
+  --hotkeypad-border-container: #374151;
+  --hotkeypad-border-container-hover: #9ca3af;
+  --hotkeypad-fg-muted: #d1d5db;
+}
+
+#hotkeypad [data-backdrop] {
+  position: fixed;
+  inset: 0;
+  background-color: var(--hotkeypad-bg-backdrop);
+  opacity: 0;
+  z-index: 10;
+}
+
+#hotkeypad [data-container] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 640px;
+  background: var(--hotkeypad-bg-container);
+  border: 1px solid var(--hotkeypad-border-container);
+  border-radius: 0.5rem;
+  filter: drop-shadow(0 35px 35px rgb(0 0 0 / 0.3));
+  z-index: 20;
+}
+
+/* HotKeyPad Header */
+#hotkeypad [data-container] header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+
+#hotkeypad [data-container] header span {
+  margin-left: -2px;
+  padding-inline: 6px;
+  width: fit-content;
+  color: var(--hotkeypad-fg-muted);
+  background-color: var(--hotkeypad-bg-item-hover);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+#hotkeypad [data-container] header input {
+  width: 100%;
+  color: var(--hotkeypad-fg-muted);
+  font-size: 1.25rem;
+}
+
+#hotkeypad [data-container] header input::placeholder {
+  color: var(--hotkeypad-fg-muted);
+  opacity: 0.75;
+}
+
+#hotkeypad [data-container] header input:focus {
+  outline: none;
+}
+
+/* HotKeyPad Sections */
+#hotkeypad [data-sections] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-block: 1px solid var(--hotkeypad-border-container);
+}
+
+#hotkeypad [data-section] {
+  display: flex;
+  flex-direction: column;
+}
+
+#hotkeypad [data-section] h4 {
+  padding-left: 1.25rem;
+  color: var(--hotkeypad-fg-muted);
+  font-size: 0.875rem;
+}
+
+/* HotKeyPad Items */
+#hotkeypad [data-hotkey] {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+#hotkeypad [data-hotkey][data-active] {
+  background-color: var(--hotkeypad-bg-item-hover);
+  outline: none;
+}
+
+#hotkeypad [data-hotkey]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background-color: transparent;
+  transition: background-color 0.15s;
+}
+
+#hotkeypad [data-active]::before {
+  background-color: var(--hotkeypad-fg-muted);
+}
+
+#hotkeypad [data-hotkey] span {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--hotkeypad-fg-muted);
+}
+
+#hotkeypad [data-hotkey] span:has(img) img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#hotkeypad [data-hotkey] p {
+  flex-grow: 1;
+  color: var(--hotkeypad-fg-muted);
+}
+
+#hotkeypad [data-hotkey] div {
+  display: flex;
+  gap: 0.25rem;
+}
+
+#hotkeypad [data-hotkey] div span {
+  padding-block: 2px;
+  padding-inline: 6px;
+  width: fit-content;
+  color: var(--hotkeypad-fg-muted);
+  background-color: var(--hotkeypad-bg-item-hover);
+  border: 1px solid var(--hotkeypad-border-container);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: var(--hotkeypad-font-mono);
+  pointer-events: none;
+  user-select: none;
+}
+
+#hotkeypad [data-hotkey]:hover div span,
+#hotkeypad [data-active] div span {
+  background-color: var(--hotkeypad-border-container);
+  border-color: var(--hotkeypad-border-container-hover);
+}
+
+/* HotKeyPad Footer */
+#hotkeypad [data-container] footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  padding: 0.75rem 1.25rem;
+}
+
+#hotkeypad [data-container] footer p {
+  display: flex;
+  gap: 0.25rem;
+  color: var(--hotkeypad-fg-muted);
+  font-size: 0.875rem;
+}
+
+#hotkeypad [data-container] footer kbd {
+  padding-inline: 6px;
+  color: var(--hotkeypad-fg-muted);
+  background-color: var(--hotkeypad-bg-kbd);
+  border: 1px solid var(--hotkeypad-border-container-hover);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media screen and (min-width: 648px) {
+  #hotkeypad [data-container] footer {
+    justify-content: space-between;
+  }
+}
