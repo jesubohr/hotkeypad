@@ -6,7 +6,9 @@
   "module": "./dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "css": "cp src/styles/*.css dist/styles",
+    "init-css": "mkdir dist\\styles"
   },
   "exports": {
     ".": {
