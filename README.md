@@ -3,6 +3,12 @@
 HotKeypad is a lightweight package that provides you with a keyboard shortcuts interface for your website.
 Built with vanilla JS, no external dependencies. Heavily inspired by [NinjaKeys](https://github.com/ssleptsov/ninja-keys).
 
+![npm](https://img.shields.io/npm/v/hotkeypad)
+![npm](https://img.shields.io/npm/dw/hotkeypad)
+
+## Demo
+![Demo](./docs/hotkeypad-demo.gif)
+
 ## Installation
 
 You can install hotkeypad via npm, pnpm or yarn. Here's how you can do it with npm:
