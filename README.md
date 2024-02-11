@@ -1,13 +1,17 @@
 # HotKeyPad
 
 HotKeypad is a lightweight package that provides you with a keyboard shortcuts interface for your website.
-Built with vanilla JS, no external dependencies. Heavily inspired by [NinjaKeys](https://github.com/ssleptsov/ninja-keys).
+Built with vanilla JS, no external dependencies. Inspired in design and functionality by [NinjaKeys](https://github.com/ssleptsov/ninja-keys).
 
 ![npm](https://img.shields.io/npm/v/hotkeypad)
 ![npm](https://img.shields.io/npm/dw/hotkeypad)
 
 ## Demo
 ![Demo](./docs/hotkeypad-demo.gif)
+
+## Motivation
+
+There are lots of libraries that provide keyboard shortcuts for web apps, but most of them are somewhat heavy and depend on extra dependencies. I wanted to create a simple and lightweight package that provided this functionality without any dependencies and made with vanilla JS, so it could be integrated into any web project.
 
 ## Installation
 
@@ -73,7 +77,6 @@ You can pass the following attributes to the `HotKeyPad` constructor or to the h
 | placeholder | Search command | Placeholder text for the search input.                  |
 | activationLetter | `K` | The activation letter for the commands. Default is `K`.       |
 | closeKey | `Escape` | The key to close the keypad. Default is `Escape`.                |
-| hideBreadcrumbs | false | Hide the breadcrumbs.                                        |
 
 ## Commands Format
 Array of HotKeyPadData that represent the commands that will be displayed on the keypad.
