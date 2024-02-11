@@ -32,6 +32,7 @@ export default class HotKeyPad {
     if (activationLetter && activationLetter !== "")
       this.#activationLetter = activationLetter
 
+    this.#checkTagOptions()
     this.#init()
     return this
   }
@@ -52,6 +53,37 @@ export default class HotKeyPad {
     this.#createContainer()
     this.#createHeader()
     this.#createFooter()
+  }
+
+  #checkTagOptions() {
+    if (this.instance === null) return
+
+    if (
+      this.instance.hasAttribute("data-placeholder") &&
+      this.instance.getAttribute("data-placeholder") !== ""
+    ) {
+      this.#placeholder = this.instance.getAttribute(
+        "data-placeholder"
+      ) as string
+    }
+
+    if (
+      this.instance.hasAttribute("data-activation-letter") &&
+      this.instance.getAttribute("data-activation-letter") !== ""
+    ) {
+      this.#activationLetter = (
+        this.instance.getAttribute("data-activation-letter") as string
+      ).toUpperCase()
+    }
+
+    if (
+      this.instance.hasAttribute("data-close-key") &&
+      this.instance.getAttribute("data-close-key") !== ""
+    ) {
+      this.#closeKey = (
+        this.instance.getAttribute("data-close-key") as string
+      ).toUpperCase()
+    }
   }
 
   /* PUBLIC METHODS */
