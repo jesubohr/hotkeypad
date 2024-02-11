@@ -13,6 +13,20 @@ export function createElement(tag: string, props?: { [key: string]: string }) {
   return element
 }
 
+/**
+ * Create a new listener for the given element and event
+ * @param element The element to listen to
+ * @param event The event to listen for
+ * @param callback The callback to execute
+ */
+export function createListener<T>(
+  element: HTMLElement | Document | Window,
+  event: keyof HTMLElementEventMap,
+  callback: (event: T) => void
+) {
+  element.addEventListener(event, callback as EventListener)
+}
+
 type MutationObserverCallback = (event: MutationRecord[]) => void
 export const Observer = (callback: MutationObserverCallback) =>
   new MutationObserver(callback.bind(this))

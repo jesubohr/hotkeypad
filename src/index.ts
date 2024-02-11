@@ -1,5 +1,5 @@
 import type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types"
-import { createElement } from "./utils"
+import { createElement, createListener } from "./utils"
 
 export default class HotKeyPad {
   instance: HTMLElement | null
@@ -38,13 +38,13 @@ export default class HotKeyPad {
 
   #init() {
     // Listen for the activation key
-    document.addEventListener("keydown", (event) => {
+    createListener(document, "keydown", (event: KeyboardEvent) => {
       const keyCode = `Key${this.#activationLetter.toUpperCase()}`
       if (event.code === keyCode && (event.metaKey || event.ctrlKey)) {
         event.preventDefault()
         this.#isOpen ? this.close() : this.open()
       }
-      if (event.key === this.#closeKey) this.close()
+      if (event.key.toLowerCase() === this.#closeKey.toLowerCase()) this.close()
     })
 
     // Render first blocks of the hotkeypad
@@ -124,7 +124,7 @@ export default class HotKeyPad {
       "data-backdrop": "",
       "aria-hidden": "true"
     })
-    this.#backdrop.addEventListener("click", () => this.close())
+    createListener(this.#backdrop, "click", () => this.close())
     this.instance!.appendChild(this.#backdrop)
   }
 
