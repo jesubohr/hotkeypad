@@ -175,6 +175,27 @@ export default class HotKeyPad {
       items[this.currentIndex].removeAttribute("data-active")
       items[nextIndex].setAttribute("data-active", "")
     })
+
+    // Listen for the search input
+    createListener(this.#container!, "input", (event: InputEvent) => {
+      const input = event.target as HTMLInputElement
+      const value = input.value.toLowerCase()
+      const sections = this.#container!.querySelectorAll<HTMLElement>("[data-section]")
+      sections.forEach((section) => {
+        const list = section.querySelector("ul")!
+        const items = list.querySelectorAll("li")
+
+        items.forEach((item) => {
+          const title = item.querySelector("p")!.innerText.toLowerCase()
+          if (title.includes(value)) item.style.display = "flex"
+          else item.style.display = "none"
+        })
+
+        const visibleItems = list.querySelectorAll("li[style='display: flex;']")
+        if (visibleItems.length === 0) section.style.display = "none"
+        else section.style.display = "block"
+      })
+    })
   }
 
   /* HELPER METHODS */
