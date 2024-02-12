@@ -1,5 +1,10 @@
 import type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types"
-import { createElement, createListener, extractHotkeyLetter } from "./utils"
+import {
+  createElement,
+  createListener,
+  extractHotkeyLetter,
+  isValidHotkey
+} from "./utils"
 
 export default class HotKeyPad {
   instance: HTMLElement
@@ -180,7 +185,8 @@ export default class HotKeyPad {
     createListener(this.#container!, "input", (event: InputEvent) => {
       const input = event.target as HTMLInputElement
       const value = input.value.toLowerCase()
-      const sections = this.#container!.querySelectorAll<HTMLElement>("[data-section]")
+      const sections =
+        this.#container!.querySelectorAll<HTMLElement>("[data-section]")
       sections.forEach((section) => {
         const list = section.querySelector("ul")!
         const items = list.querySelectorAll("li")
@@ -214,6 +220,41 @@ export default class HotKeyPad {
     })
   }
 
+  /**
+   * Verify the commands array
+   * @param commands The commands array to verify
+   * @returns The verified commands array
+   * @throws An error if the commands array is not valid
+   */
+  #verifyCommands(commands: HotKeyPadCommand[]) {
+    if (commands.length === 0)
+      throw new Error("The commands array cannot be empty")
+    commands.forEach((command) => {
+      if (
+        command.id === "" ||
+        command.title === "" ||
+        command.hotkey === "" ||
+        command.handler == null
+      )
+        throw new Error(
+          "The command object is not valid. It should contain an id, title, hotkey and handler"
+        )
+
+      if (!isValidHotkey(command.hotkey))
+        throw new Error(
+          "The hotkey is not valid. It should only contain CTRL, CMD, ALT, SHIFT and a letter. Also it cannot contain browser or system reserved hotkeys such as CTRL+T, CTRL+N, CTRL+W, etc."
+        )
+
+      if (command.icon != null && typeof command.icon !== "string")
+        throw new Error("The icon should be a string")
+
+      const keys = command.hotkey.match(/\w+/g) ?? []
+      if (keys.length > 2)
+        throw new Error("The hotkey only supports 2 keys maximum")
+    })
+    return commands
+  }
+
   /* PUBLIC METHODS */
   open() {
     window.dispatchEvent(new CustomEvent("hotkeypad:open")) // Allow to listen for the open event
@@ -237,7 +278,7 @@ export default class HotKeyPad {
   }
 
   setCommands(commands: HotKeyPadCommand[]) {
-    this.#commands = commands
+    this.#commands = this.#verifyCommands(commands)
     this.#renderCommands()
     this.#setListeners()
   }
