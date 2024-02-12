@@ -122,6 +122,29 @@ export default class HotKeyPad {
         })
       }
     })
+
+    // Listen for click events on the items
+    createListener(this.#container!, "click", (event: MouseEvent) => {
+      const item = event.target as HTMLElement
+      if (item.tagName === "LI") this.#activateItem(item)
+      if (item.parentElement?.tagName === "LI")
+        this.#activateItem(item.parentElement)
+    })
+  }
+
+  /**
+   * Activate the item with the corresponding hotkey
+   * @param item The item to activate
+   * @executes The handler of the item
+   */
+  #activateItem(item: HTMLElement) {
+    this.#commands.find(({ hotkey, handler }) => {
+      if (item.getAttribute("data-hotkey") === hotkey) {
+        if (handler != null) setTimeout(() => handler(), 200)
+        this.close()
+      }
+      return false
+    })
   }
 
   /* PUBLIC METHODS */
