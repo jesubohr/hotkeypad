@@ -1,20 +1,20 @@
 {
   "name": "hotkeypad",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "HotKeyPad: A simple and beautiful command keyboard shortcut for your web app.",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "type": "module",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "css": "cp src/styles/*.css dist/styles",
-    "init-css": "mkdir dist\\styles"
-  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "css": "cp src/styles/*.css dist/styles",
+    "init-css": "mkdir dist\\styles"
   },
   "keywords": [
     "hotkey",
@@ -24,9 +24,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:jesubohr/hotkeypad.git"
+    "url": "git+ssh://git@github.com/jesubohr/hotkeypad.git"
   },
-  "homepage": "https://github.com/jesubohr/hotkeypad",
+  "homepage": "https://github.com/jesubohr/hotkeypad#readme",
   "author": "Jesus Borrero (jesubohr)",
   "license": "MIT",
   "devDependencies": {

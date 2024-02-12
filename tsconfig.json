@@ -17,6 +17,7 @@
     /* Interop Constraints */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
 
     /* Type Checking */
     "strict": true,
