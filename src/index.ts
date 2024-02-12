@@ -128,6 +128,15 @@ export default class HotKeyPad {
       if (item.parentElement?.tagName === "LI")
         this.#activateItem(item.parentElement)
     })
+
+    // Listen for the mouse over event on the items
+    createListener(this.#container!, "mouseover", (event: MouseEvent) => {
+      const item = event.target as HTMLElement
+      if (item.tagName === "LI") {
+        this.#items.forEach((item) => item.removeAttribute("data-active"))
+        item.setAttribute("data-active", "")
+      }
+    })
   }
 
   /* HELPER METHODS */
