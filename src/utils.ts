@@ -27,7 +27,3 @@ export function createListener<T>(
 ) {
   element.addEventListener(event, callback as EventListener)
 }
-
-type MutationObserverCallback = (event: MutationRecord[]) => void
-export const Observer = (callback: MutationObserverCallback) =>
-  new MutationObserver(callback.bind(this))

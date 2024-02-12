@@ -5,7 +5,7 @@
     "lib": ["DOM", "ES2022"],
 
     /* Modules */
-    "module": "commonjs",
+    "module": "ES6",
     "rootDir": "./src",
     "moduleResolution": "node10",
 

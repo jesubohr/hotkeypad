@@ -13,6 +13,7 @@ export default class HotKeyPad {
   #activationLetter = "K"
   #placeholder = "Search command"
   #svgIconColor = "black"
+  #observer = new MutationObserver(this.#observeClassChanges.bind(this))
 
   constructor({
     closeKey,
@@ -48,6 +49,14 @@ export default class HotKeyPad {
       if (event.key.toLowerCase() === this.#closeKey.toLowerCase()) this.close()
     })
 
+    // Observe the class changes on the hotkeypad instance
+    this.#observer.observe(this.instance, {
+      attributes: true,
+      attributeFilter: ['class'],
+      childList: false,
+      characterData: false
+    })
+
     // Render first blocks of the hotkeypad
     this.#createBackdrop()
     this.#createContainer()
@@ -81,6 +90,16 @@ export default class HotKeyPad {
       this.#closeKey = (
         this.instance.getAttribute("data-close-key") as string
       ).toUpperCase()
+    }
+  }
+
+  #observeClassChanges(event: MutationRecord[]) {
+    const { attributeName, target } = event[0]
+    if (attributeName === "class") {
+      if ((target as Element).classList.contains("dark"))
+        this.#svgIconColor = "white"
+      else this.#svgIconColor = "black"
+      this.#renderCommands()
     }
   }
 
