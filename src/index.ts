@@ -2,7 +2,7 @@ import type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types"
 import { createElement, createListener } from "./utils"
 
 export default class HotKeyPad {
-  instance: HTMLElement | null
+  instance: HTMLElement
   #backdrop: HTMLElement | null = null
   #container: HTMLElement | null = null
   #commands: HotKeyPadCommand[] = []
@@ -22,7 +22,7 @@ export default class HotKeyPad {
     if (document.getElementById("hotkeypad") == null) {
       throw new Error("HotKeyPad instance not found in the DOM")
     }
-    this.instance = document.getElementById("hotkeypad")
+    this.instance = document.getElementById("hotkeypad") as HTMLElement
     this.#activationKey = navigator.userAgent.includes("Macintosh")
       ? "Cmd"
       : "Ctrl"
@@ -56,8 +56,6 @@ export default class HotKeyPad {
   }
 
   #checkTagOptions() {
-    if (this.instance === null) return
-
     if (
       this.instance.hasAttribute("data-placeholder") &&
       this.instance.getAttribute("data-placeholder") !== ""
@@ -89,7 +87,6 @@ export default class HotKeyPad {
   /* PUBLIC METHODS */
   open() {
     window.dispatchEvent(new CustomEvent("hotkeypad:open")) // Allow to listen for the open event
-    if (this.instance === null) return
 
     this.instance.style.opacity = "1"
     this.instance.style.visibility = "visible"
@@ -99,7 +96,6 @@ export default class HotKeyPad {
 
   close() {
     window.dispatchEvent(new CustomEvent("hotkeypad:close")) // Allow to listen for the close event
-    if (this.instance === null) return
 
     this.instance.style.opacity = "0"
     this.instance.style.visibility = "hidden"
@@ -117,7 +113,7 @@ export default class HotKeyPad {
 
   /* GETTERS */
   get #isOpen() {
-    return this.instance!.style.visibility === "visible"
+    return this.instance.style.visibility === "visible"
   }
 
   get activationKey() {
@@ -157,12 +153,12 @@ export default class HotKeyPad {
       "aria-hidden": "true"
     })
     createListener(this.#backdrop, "click", () => this.close())
-    this.instance!.appendChild(this.#backdrop)
+    this.instance.appendChild(this.#backdrop)
   }
 
   #createContainer() {
     this.#container = createElement("div", { "data-container": "" })
-    this.instance!.appendChild(this.#container)
+    this.instance.appendChild(this.#container)
   }
 
   #createHeader() {
@@ -181,17 +177,15 @@ export default class HotKeyPad {
 
   #createFooter() {
     const footerEl = createElement("footer")
-    const keyEnter = createElement("kbd", { innerText: "↩" })
-    const keyUp = createElement("kbd", { innerText: "↑" })
-    const keyDown = createElement("kbd", { innerText: "↓" })
-    const keyEsc = createElement("kbd", { innerText: this.#closeKey })
-    const keyCmdK = createElement("kbd", {
-      innerText: `${this.#activationKey} + ${this.#activationLetter}`
-    })
+    const keyEnter = createElement("kbd", "↩")
+    const keyUp = createElement("kbd", "↑")
+    const keyDown = createElement("kbd", "↓")
+    const keyEsc = createElement("kbd", this.#closeKey)
+    const keyCmdK = createElement("kbd", `${this.#activationKey} + ${this.#activationLetter}`)
 
-    const pEnter = createElement("p", { innerText: " to select" })
-    const pUpDown = createElement("p", { innerText: " to navigate" })
-    const pCmdK = createElement("p", { innerText: " to close" })
+    const pEnter = createElement("p", " to select")
+    const pUpDown = createElement("p", " to navigate")
+    const pCmdK = createElement("p", " to close")
 
     pEnter.prepend(keyEnter)
     pUpDown.prepend(keyUp, keyDown)
@@ -209,7 +203,7 @@ export default class HotKeyPad {
       const sectionEl = createElement("div")
       sectionEl.setAttribute("data-section", section.toLowerCase())
 
-      const titleEl = createElement("h4", { innerText: section })
+      const titleEl = createElement("h4", section)
       const listEl = createElement("ul")
 
       commands.forEach(({ title, icon, hotkey }) => {
@@ -230,7 +224,7 @@ export default class HotKeyPad {
 
         const itemKeys = createElement("div")
         keys.forEach((key) => {
-          const keyEl = createElement("span", { innerText: key })
+          const keyEl = createElement("span", key)
           itemKeys.appendChild(keyEl)
         })
 

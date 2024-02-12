@@ -4,9 +4,10 @@
  * @param props The props of the element
  * @returns The created element
  */
-export function createElement(tag: string, props?: { [key: string]: string }) {
+export function createElement(tag: string, props?: { [key: string]: string } | string) {
   const element = document.createElement(tag)
-  if (props)
+  if(props && typeof props === "string" && props !== "") element.textContent = props
+  if (props && typeof props === "object")
     Object.keys(props).forEach((key) => {
       element.setAttribute(key, props[key])
     })
