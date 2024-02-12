@@ -38,6 +38,7 @@ export default class HotKeyPad {
     return this
   }
 
+  /* CONFIGURATION METHODS */
   #init() {
     // Listen for the activation key
     createListener(document, "keydown", (event: KeyboardEvent) => {
@@ -52,7 +53,7 @@ export default class HotKeyPad {
     // Observe the class changes on the hotkeypad instance
     this.#observer.observe(this.instance, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ["class"],
       childList: false,
       characterData: false
     })
@@ -103,6 +104,26 @@ export default class HotKeyPad {
     }
   }
 
+  #setListeners() {
+    // Listen for hotkey combinations registered in the hotkeypad
+    createListener(this.instance, "keydown", (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey) {
+        this.#commands.find(({ hotkey, handler }) => {
+          const pairKey = hotkey
+            .split("+")
+            .map((key) => key.trim())[1]
+            .toLowerCase()
+          if (event.key.toLowerCase() === pairKey) {
+            event.preventDefault()
+            if (handler != null) setTimeout(() => handler(), 200)
+            this.close()
+          }
+          return false
+        })
+      }
+    })
+  }
+
   /* PUBLIC METHODS */
   open() {
     window.dispatchEvent(new CustomEvent("hotkeypad:open")) // Allow to listen for the open event
@@ -128,6 +149,7 @@ export default class HotKeyPad {
   setCommands(commands: HotKeyPadCommand[]) {
     this.#commands = commands
     this.#renderCommands()
+    this.#setListeners()
   }
 
   /* GETTERS */
@@ -200,7 +222,10 @@ export default class HotKeyPad {
     const keyUp = createElement("kbd", "↑")
     const keyDown = createElement("kbd", "↓")
     const keyEsc = createElement("kbd", this.#closeKey)
-    const keyCmdK = createElement("kbd", `${this.#activationKey} + ${this.#activationLetter}`)
+    const keyCmdK = createElement(
+      "kbd",
+      `${this.#activationKey} + ${this.#activationLetter}`
+    )
 
     const pEnter = createElement("p", " to select")
     const pUpDown = createElement("p", " to navigate")
