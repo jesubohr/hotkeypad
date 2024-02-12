@@ -137,6 +137,44 @@ export default class HotKeyPad {
         item.setAttribute("data-active", "")
       }
     })
+
+    // Listen for the keyboard navigation events
+    createListener(this.#container!, "keydown", (event: KeyboardEvent) => {
+      const items = this.#items
+      this.currentIndex = Array.from(items).findIndex((item) =>
+        item.hasAttribute("data-active")
+      )
+      this.currentIndex = this.currentIndex === -1 ? 0 : this.currentIndex
+      let nextIndex = 0
+
+      if (event.key === "Enter") {
+        event.preventDefault()
+        this.#activateItem(items[this.currentIndex])
+        items[this.currentIndex].removeAttribute("data-active")
+        this.currentIndex = 0
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault()
+        nextIndex =
+          this.currentIndex - 1 < 0 ? items.length - 1 : this.currentIndex - 1
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault()
+        nextIndex =
+          this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
+      }
+
+      if (event.key === "Tab") {
+        event.preventDefault()
+        nextIndex =
+          this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
+      }
+
+      items[this.currentIndex].removeAttribute("data-active")
+      items[nextIndex].setAttribute("data-active", "")
+    })
   }
 
   /* HELPER METHODS */
