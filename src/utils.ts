@@ -34,13 +34,49 @@ export function createListener<T>(
 
 /**
  * Extract the valid letter from the hotkey
- * @param command The hotkey to extract the letter from
+ * @param hotkey The hotkey to extract the letter from
  * @returns The activation letter in uppercase
  * @example
  * extractHotkey("Control + D") // "D"
  * extractHotkey("control + shift + l") // "L"
  */
-export function extractHotkeyLetter(command: string) {
-  const key = command.match(/\w+$/)?.[0]! ?? ""
+export function extractHotkeyLetter(hotkey: string) {
+  const key = hotkey.match(/\w+$/)?.[0]! ?? ""
   return key === "" || key.length > 1 ? "" : key.toUpperCase()
+}
+
+const VALID_META_KEYS = ["Control", "Shift", "Alt", "Meta"]
+const NOT_ALLOWED_HOTKEYS = [
+  "Control+T",
+  "Control+Shift+T",
+  "Control+W",
+  "Control+Shift+W",
+  "Control+N",
+  "Control+Shift+N",
+  "Control+Tab",
+  "Control+Shift+Tab"
+]
+/**
+ * Validate the given hotkey
+ * @param hotkey The hotkey to verify
+ * @returns Whether the hotkey is valid or not
+ */
+export function isValidHotkey(hotkey: string) {
+  const keys = hotkey.match(/\w+/g) ?? []
+  if (keys.length === 0) return false
+
+  const hotkeyString = keys
+    .map((key) => {
+      if (key.toUpperCase() === "CTRL") return "Control"
+      if (key.toUpperCase() === "CMD") return "Meta"
+      return key[0].toUpperCase() + key.slice(1).toLowerCase()
+    })
+    .join("+")
+  return (
+    !NOT_ALLOWED_HOTKEYS.includes(hotkeyString) &&
+    hotkeyString
+      .split("+")
+      .slice(0, -1)
+      .every((key) => VALID_META_KEYS.includes(key))
+  )
 }
