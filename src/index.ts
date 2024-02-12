@@ -1,5 +1,5 @@
 import type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types"
-import { createElement, createListener } from "./utils"
+import { createElement, createListener, extractHotkeyLetter } from "./utils"
 
 export default class HotKeyPad {
   instance: HTMLElement
@@ -109,11 +109,9 @@ export default class HotKeyPad {
     createListener(this.instance, "keydown", (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey) {
         this.#commands.find(({ hotkey, handler }) => {
-          const pairKey = hotkey
-            .split("+")
-            .map((key) => key.trim())[1]
-            .toLowerCase()
-          if (event.key.toLowerCase() === pairKey) {
+          const keyLetter = extractHotkeyLetter(hotkey)
+          const keyCode = `Key${keyLetter}`
+          if (event.code === keyCode) {
             event.preventDefault()
             if (handler != null) setTimeout(() => handler(), 200)
             this.close()

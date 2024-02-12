@@ -31,3 +31,16 @@ export function createListener<T>(
 ) {
   element.addEventListener(event, callback as EventListener)
 }
+
+/**
+ * Extract the valid letter from the hotkey
+ * @param command The hotkey to extract the letter from
+ * @returns The activation letter in uppercase
+ * @example
+ * extractHotkey("Control + D") // "D"
+ * extractHotkey("control + shift + l") // "L"
+ */
+export function extractHotkeyLetter(command: string) {
+  const key = command.match(/\w+$/)?.[0]! ?? ""
+  return key === "" || key.length > 1 ? "" : key.toUpperCase()
+}
