@@ -130,6 +130,7 @@ export default class HotKeyPad {
     })
   }
 
+  /* HELPER METHODS */
   /**
    * Activate the item with the corresponding hotkey
    * @param item The item to activate
@@ -185,10 +186,14 @@ export default class HotKeyPad {
   get #sections() {
     const map = new Map()
     this.#commands.forEach((item) => {
-      const key = item.section
+      const key =
+        typeof item.section !== "string" || item.section === ""
+          ? "Unlisted"
+          : item.section
+      const { section, ...content } = item
       const collection = map.get(key)
-      if (!collection) map.set(key, [item])
-      else collection.push(item)
+      if (!collection) map.set(key, [content])
+      else collection.push(content)
     })
     return Array.from(map) as Array<[string, HotKeyPadCommand[]]>
   }
@@ -268,11 +273,15 @@ export default class HotKeyPad {
       const sectionEl = createElement("div")
       sectionEl.setAttribute("data-section", section.toLowerCase())
 
-      const titleEl = createElement("h4", section)
+      if (section !== "Unlisted") {
+        const titleEl = createElement("h4", section)
+        sectionEl.appendChild(titleEl)
+      }
       const listEl = createElement("ul")
 
       commands.forEach(({ title, icon, hotkey }) => {
         const keys = hotkey.split("+").map((key) => key.trim())
+        if (icon == null) icon = ""
         const stringIcon = this.#isCustomIcon(icon)
           ? icon
           : `<img src="${this.#iconURL(icon)}" alt="${title}" />`
@@ -281,8 +290,11 @@ export default class HotKeyPad {
         itemEl.setAttribute("data-hotkey", hotkey)
         itemEl.setAttribute("tabindex", "0")
 
-        const itemIcon = createElement("span")
-        itemIcon.innerHTML = stringIcon
+        if (stringIcon !== "") {
+          const itemIcon = createElement("span")
+          itemIcon.innerHTML = stringIcon
+          itemEl.appendChild(itemIcon)
+        }
 
         const itemTitle = createElement("p")
         itemTitle.append(title)
@@ -293,13 +305,11 @@ export default class HotKeyPad {
           itemKeys.appendChild(keyEl)
         })
 
-        itemEl.appendChild(itemIcon)
         itemEl.appendChild(itemTitle)
         itemEl.appendChild(itemKeys)
         listEl.appendChild(itemEl)
       })
 
-      sectionEl.appendChild(titleEl)
       sectionEl.appendChild(listEl)
       sectionsEl.appendChild(sectionEl)
     })

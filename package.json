@@ -1,6 +1,6 @@
 {
   "name": "hotkeypad",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "HotKeyPad: A simple and beautiful command keyboard shortcut for your web app.",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

@@ -1,9 +1,9 @@
 export interface HotKeyPadCommand {
   id: string
   title: string
-  icon: string
+  icon?: string
   hotkey: string
-  section: string
+  section?: string
   handler: () => void
 }
 

@@ -87,8 +87,8 @@ Array of HotKeyPadData that represent the commands that will be displayed on the
 | title     | string   | The title of the command.                                                   |
 | hotkey    | string   | The hotkey combination for the command. Format: `{ActivationKey}+{Letter}`  |
 | handler   | Function | The function to be executed when the command is triggered.                  |
-| icon      | string   | The icon of the command.                                                    |
-| section   | string   | The section of the command. Allows you to group commands.                   |
+| icon      | string (optional)   | The icon of the command.                                                    |
+| section   | string (optional)   | The section of the command. Allows you to group commands.                   |
 
 ## Methods
 
@@ -100,9 +100,6 @@ Open the keypad.
 
 ### `close(): void`
 Close the keypad.
-
-### `toggle(): void`
-Toggle the keypad.
 
 ## Events
 
