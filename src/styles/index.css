@@ -58,6 +58,7 @@
   margin-left: -2px;
   padding-inline: 6px;
   width: fit-content;
+  width: -moz-fit-content;
   color: var(--hotkeypad-fg-muted);
   background-color: var(--hotkeypad-bg-item-hover);
   border-radius: 0.25rem;
@@ -97,6 +98,7 @@
   padding-left: 1.25rem;
   color: var(--hotkeypad-fg-muted);
   font-size: 0.875rem;
+  text-transform: capitalize;
 }
 
 /* HotKeyPad Items */
@@ -144,6 +146,7 @@
 #hotkeypad [data-hotkey] p {
   flex-grow: 1;
   color: var(--hotkeypad-fg-muted);
+  text-transform: capitalize;
 }
 
 #hotkeypad [data-hotkey] div {
@@ -155,6 +158,7 @@
   padding-block: 2px;
   padding-inline: 6px;
   width: fit-content;
+  width: -moz-fit-content;
   color: var(--hotkeypad-fg-muted);
   background-color: var(--hotkeypad-bg-item-hover);
   border: 1px solid var(--hotkeypad-border-container);
@@ -163,6 +167,8 @@
   font-family: var(--hotkeypad-font-mono);
   pointer-events: none;
   user-select: none;
+  -webkit-user-select: none;
+  text-transform: capitalize;
 }
 
 #hotkeypad [data-hotkey]:hover div span,
@@ -196,6 +202,7 @@
   font-size: 0.875rem;
   pointer-events: none;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 @media screen and (min-width: 648px) {
