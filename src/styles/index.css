@@ -68,6 +68,7 @@
 #hotkeypad [data-container] header input {
   width: 100%;
   color: var(--hotkeypad-fg-muted);
+  background-color: var(--hotkeypad-bg-container);
   font-size: 1.25rem;
 }
 

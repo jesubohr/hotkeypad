@@ -255,6 +255,18 @@ export default class HotKeyPad {
     return commands
   }
 
+  #hasCustomFooter(footerEl: HTMLElement) {
+    const template = document.querySelector(
+      "#hotkeypad-footer"
+    ) as HTMLTemplateElement | null
+
+    if (template == null) return false
+    const clone = template.content.cloneNode(true) as DocumentFragment
+    const children = Array.from(clone.children)
+    children.forEach((child) => footerEl.appendChild(child))
+    return true
+  }
+
   /* PUBLIC METHODS */
   open() {
     window.dispatchEvent(new CustomEvent("hotkeypad:open")) // Allow to listen for the open event
@@ -353,24 +365,26 @@ export default class HotKeyPad {
 
   #createFooter() {
     const footerEl = createElement("footer")
-    const keyEnter = createElement("kbd", "↩")
-    const keyUp = createElement("kbd", "↑")
-    const keyDown = createElement("kbd", "↓")
-    const keyEsc = createElement("kbd", this.#closeKey)
-    const keyCmdK = createElement(
-      "kbd",
-      `${this.#activationKey} + ${this.#activationLetter}`
-    )
+    if (!this.#hasCustomFooter(footerEl)) {
+      const keyEnter = createElement("kbd", "↩")
+      const keyUp = createElement("kbd", "↑")
+      const keyDown = createElement("kbd", "↓")
+      const keyEsc = createElement("kbd", this.#closeKey)
+      const keyCmdK = createElement(
+        "kbd",
+        `${this.#activationKey} + ${this.#activationLetter}`
+      )
 
-    const pEnter = createElement("p", " to select")
-    const pUpDown = createElement("p", " to navigate")
-    const pCmdK = createElement("p", " to close")
+      const pEnter = createElement("p", " to select")
+      const pUpDown = createElement("p", " to navigate")
+      const pCmdK = createElement("p", " to close")
 
-    pEnter.prepend(keyEnter)
-    pUpDown.prepend(keyUp, keyDown)
-    pCmdK.prepend(keyCmdK, keyEsc)
+      pEnter.prepend(keyEnter)
+      pUpDown.prepend(keyUp, keyDown)
+      pCmdK.prepend(keyCmdK, keyEsc)
 
-    footerEl.append(pEnter, pUpDown, pCmdK)
+      footerEl.append(pEnter, pUpDown, pCmdK)
+    }
     this.#container!.appendChild(footerEl)
   }
 
