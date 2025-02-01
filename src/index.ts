@@ -353,6 +353,7 @@ export default class HotKeyPad {
     const headerEl = createElement("header")
     const inputEl = createElement("input", {
       type: "text",
+      name: this.#placeholder.toLocaleLowerCase(),
       placeholder: this.#placeholder,
       "aria-label": this.#placeholder,
       autocomplete: "off",
@@ -398,6 +399,8 @@ export default class HotKeyPad {
 
       if (section !== "Unlisted") {
         const titleEl = createElement("h4", section)
+        titleEl.setAttribute("id", `section-${section.toLowerCase()}`)
+        sectionEl.setAttribute("aria-labelledby", `section-${section.toLowerCase()}`)
         sectionEl.appendChild(titleEl)
       }
       const listEl = createElement("ul")
@@ -410,8 +413,7 @@ export default class HotKeyPad {
           : `<img src="${this.#iconURL(icon)}" alt="${title}" />`
 
         const itemEl = createElement("li")
-        itemEl.setAttribute("data-hotkey", hotkey)
-        itemEl.setAttribute("tabindex", "0")
+        itemEl.setAttribute("data-hotkey", hotkey.toLowerCase())
 
         if (stringIcon !== "") {
           const itemIcon = createElement("span")
