@@ -1,10 +1,5 @@
 import type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types"
-import {
-  createElement,
-  createListener,
-  extractHotkeyLetter,
-  isValidHotkey
-} from "./utils"
+import { createElement, createListener, extractHotkeyLetter, isValidHotkey } from "./utils"
 
 export default class HotKeyPad {
   instance: HTMLElement
@@ -20,23 +15,16 @@ export default class HotKeyPad {
   #svgIconColor = "black"
   #observer = new MutationObserver(this.#observeClassChanges.bind(this))
 
-  constructor({
-    closeKey,
-    placeholder,
-    activationLetter
-  }: HotKeyPadOptionsProps = {}) {
+  constructor({ closeKey, placeholder, activationLetter }: HotKeyPadOptionsProps = {}) {
     if (document.getElementById("hotkeypad") == null) {
       throw new Error("HotKeyPad instance not found in the DOM")
     }
     this.instance = document.getElementById("hotkeypad") as HTMLElement
-    this.#activationKey = navigator.userAgent.includes("Macintosh")
-      ? "Cmd"
-      : "Ctrl"
+    this.#activationKey = navigator.userAgent.includes("Macintosh") ? "Cmd" : "Ctrl"
 
     if (closeKey && closeKey !== "") this.#closeKey = closeKey
     if (placeholder && placeholder !== "") this.#placeholder = placeholder
-    if (activationLetter && activationLetter !== "")
-      this.#activationLetter = activationLetter
+    if (activationLetter && activationLetter !== "") this.#activationLetter = activationLetter
 
     this.#checkTagOptions()
     this.#init()
@@ -71,39 +59,26 @@ export default class HotKeyPad {
   }
 
   #checkTagOptions() {
-    if (
-      this.instance.hasAttribute("data-placeholder") &&
-      this.instance.getAttribute("data-placeholder") !== ""
-    ) {
-      this.#placeholder = this.instance.getAttribute(
-        "data-placeholder"
-      ) as string
+    if (this.instance.hasAttribute("data-placeholder") && this.instance.getAttribute("data-placeholder") !== "") {
+      this.#placeholder = this.instance.getAttribute("data-placeholder") as string
     }
 
     if (
       this.instance.hasAttribute("data-activation-letter") &&
       this.instance.getAttribute("data-activation-letter") !== ""
     ) {
-      this.#activationLetter = (
-        this.instance.getAttribute("data-activation-letter") as string
-      ).toUpperCase()
+      this.#activationLetter = (this.instance.getAttribute("data-activation-letter") as string).toUpperCase()
     }
 
-    if (
-      this.instance.hasAttribute("data-close-key") &&
-      this.instance.getAttribute("data-close-key") !== ""
-    ) {
-      this.#closeKey = (
-        this.instance.getAttribute("data-close-key") as string
-      ).toUpperCase()
+    if (this.instance.hasAttribute("data-close-key") && this.instance.getAttribute("data-close-key") !== "") {
+      this.#closeKey = (this.instance.getAttribute("data-close-key") as string).toUpperCase()
     }
   }
 
   #observeClassChanges(event: MutationRecord[]) {
     const { attributeName, target } = event[0]
     if (attributeName === "class") {
-      if ((target as Element).classList.contains("dark"))
-        this.#svgIconColor = "white"
+      if ((target as Element).classList.contains("dark")) this.#svgIconColor = "white"
       else this.#svgIconColor = "black"
       this.#renderCommands()
     }
@@ -130,8 +105,7 @@ export default class HotKeyPad {
     createListener(this.#container!, "click", (event: MouseEvent) => {
       const item = event.target as HTMLElement
       if (item.tagName === "LI") this.#activateItem(item)
-      if (item.parentElement?.tagName === "LI")
-        this.#activateItem(item.parentElement)
+      if (item.parentElement?.tagName === "LI") this.#activateItem(item.parentElement)
     })
 
     // Listen for the mouse over event on the items
@@ -146,9 +120,7 @@ export default class HotKeyPad {
     // Listen for the keyboard navigation events
     createListener(this.#container!, "keydown", (event: KeyboardEvent) => {
       const items = this.#items
-      this.currentIndex = Array.from(items).findIndex((item) =>
-        item.hasAttribute("data-active")
-      )
+      this.currentIndex = Array.from(items).findIndex((item) => item.hasAttribute("data-active"))
       this.currentIndex = this.currentIndex === -1 ? 0 : this.currentIndex
       let nextIndex = 0
 
@@ -161,20 +133,17 @@ export default class HotKeyPad {
 
       if (event.key === "ArrowUp") {
         event.preventDefault()
-        nextIndex =
-          this.currentIndex - 1 < 0 ? items.length - 1 : this.currentIndex - 1
+        nextIndex = this.currentIndex - 1 < 0 ? items.length - 1 : this.currentIndex - 1
       }
 
       if (event.key === "ArrowDown") {
         event.preventDefault()
-        nextIndex =
-          this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
+        nextIndex = this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
       }
 
       if (event.key === "Tab") {
         event.preventDefault()
-        nextIndex =
-          this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
+        nextIndex = this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
       }
 
       items[this.currentIndex].removeAttribute("data-active")
@@ -185,8 +154,7 @@ export default class HotKeyPad {
     createListener(this.#container!, "input", (event: InputEvent) => {
       const input = event.target as HTMLInputElement
       const value = input.value.toLowerCase()
-      const sections =
-        this.#container!.querySelectorAll<HTMLElement>("[data-section]")
+      const sections = this.#container!.querySelectorAll<HTMLElement>("[data-section]")
       sections.forEach((section) => {
         const list = section.querySelector("ul")!
         const items = list.querySelectorAll("li")
@@ -227,38 +195,26 @@ export default class HotKeyPad {
    * @throws An error if the commands array is not valid
    */
   #verifyCommands(commands: HotKeyPadCommand[]) {
-    if (commands.length === 0)
-      throw new Error("The commands array cannot be empty")
+    if (commands.length === 0) throw new Error("The commands array cannot be empty")
     commands.forEach((command) => {
-      if (
-        command.id === "" ||
-        command.title === "" ||
-        command.hotkey === "" ||
-        command.handler == null
-      )
-        throw new Error(
-          "The command object is not valid. It should contain an id, title, hotkey and handler"
-        )
+      if (command.id === "" || command.title === "" || command.hotkey === "" || command.handler == null)
+        throw new Error("The command object is not valid. It should contain an id, title, hotkey and handler")
 
       if (!isValidHotkey(command.hotkey))
         throw new Error(
           "The hotkey is not valid. It should only contain CTRL, CMD, ALT, SHIFT and a letter. Also it cannot contain browser or system reserved hotkeys such as CTRL+T, CTRL+N, CTRL+W, etc."
         )
 
-      if (command.icon != null && typeof command.icon !== "string")
-        throw new Error("The icon should be a string")
+      if (command.icon != null && typeof command.icon !== "string") throw new Error("The icon should be a string")
 
       const keys = command.hotkey.match(/\w+/g) ?? []
-      if (keys.length > 2)
-        throw new Error("The hotkey only supports 2 keys maximum")
+      if (keys.length > 2) throw new Error("The hotkey only supports 2 keys maximum")
     })
     return commands
   }
 
   #hasCustomFooter(footerEl: HTMLElement) {
-    const template = document.querySelector(
-      "#hotkeypad-footer"
-    ) as HTMLTemplateElement | null
+    const template = document.querySelector("#hotkeypad-footer") as HTMLTemplateElement | null
 
     if (template == null) return false
     const clone = template.content.cloneNode(true) as DocumentFragment
@@ -307,10 +263,7 @@ export default class HotKeyPad {
   get #sections() {
     const map = new Map()
     this.#commands.forEach((item) => {
-      const key =
-        typeof item.section !== "string" || item.section === ""
-          ? "Unlisted"
-          : item.section
+      const key = typeof item.section !== "string" || item.section === "" ? "Unlisted" : item.section
       const { section, ...content } = item
       const collection = map.get(key)
       if (!collection) map.set(key, [content])
@@ -329,9 +282,7 @@ export default class HotKeyPad {
   }
 
   #isCustomIcon(icon: string) {
-    return (
-      /<svg/.test(icon) || /<img/.test(icon) || /<i/.test(icon) || icon === ""
-    )
+    return /<svg/.test(icon) || /<img/.test(icon) || /<i/.test(icon) || icon === ""
   }
 
   /* RENDERING METHODS */
@@ -371,10 +322,7 @@ export default class HotKeyPad {
       const keyUp = createElement("kbd", "↑")
       const keyDown = createElement("kbd", "↓")
       const keyEsc = createElement("kbd", this.#closeKey)
-      const keyCmdK = createElement(
-        "kbd",
-        `${this.#activationKey} + ${this.#activationLetter}`
-      )
+      const keyCmdK = createElement("kbd", `${this.#activationKey} + ${this.#activationLetter}`)
 
       const pEnter = createElement("p", " to select")
       const pUpDown = createElement("p", " to navigate")
@@ -408,9 +356,7 @@ export default class HotKeyPad {
       commands.forEach(({ title, icon, hotkey }) => {
         const keys = hotkey.split("+").map((key) => key.trim())
         if (icon == null) icon = ""
-        const stringIcon = this.#isCustomIcon(icon)
-          ? icon
-          : `<img src="${this.#iconURL(icon)}" alt="${title}" />`
+        const stringIcon = this.#isCustomIcon(icon) ? icon : `<img src="${this.#iconURL(icon)}" alt="${title}" />`
 
         const itemEl = createElement("li")
         itemEl.setAttribute("data-hotkey", hotkey.toLowerCase())
