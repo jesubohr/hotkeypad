@@ -10,5 +10,6 @@ export interface HotKeyPadCommand {
 export type HotKeyPadOptionsProps = {
   closeKey?: string
   placeholder?: string
+  emptyMessage?: string
   activationLetter?: string
 }

@@ -75,6 +75,7 @@ You can pass the following attributes to the `HotKeyPad` constructor or to the h
 | Field       | Default        | Description                                             |
 |-------------|----------------|---------------------------------------------------------|
 | placeholder | Search command | Placeholder text for the search input.                  |
+| emptyMessage | No commands found | Message to display when there are no commands.      |
 | activationLetter | `K` | The activation letter for the commands. Default is `K`.       |
 | closeKey | `Escape` | The key to close the keypad. Default is `Escape`.                |
 
@@ -138,6 +139,7 @@ Allowing you to style specific elements from your style.
 #hotkeypad [data-container] {}
 #hotkeypad [data-sections] {}
 #hotkeypad [data-section] {}
+#hotkeypad [data-empty] {}
 #hotkeypad [data-hotkey] {}
 #hotkeypad [data-hotkey][data-active] {}
 ```

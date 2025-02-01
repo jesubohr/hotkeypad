@@ -12,10 +12,11 @@ export default class HotKeyPad {
   #activationKey: string
   #activationLetter = "K"
   #placeholder = "Search command"
+  #emptyMessage = "No commands found"
   #svgIconColor = "black"
   #observer = new MutationObserver(this.#observeClassChanges.bind(this))
 
-  constructor({ closeKey, placeholder, activationLetter }: HotKeyPadOptionsProps = {}) {
+  constructor({ closeKey, placeholder, emptyMessage, activationLetter }: HotKeyPadOptionsProps = {}) {
     if (document.getElementById("hotkeypad") == null) {
       throw new Error("HotKeyPad instance not found in the DOM")
     }
@@ -24,6 +25,7 @@ export default class HotKeyPad {
 
     if (closeKey && closeKey !== "") this.#closeKey = closeKey
     if (placeholder && placeholder !== "") this.#placeholder = placeholder
+    if (emptyMessage && emptyMessage !== "") this.#emptyMessage = emptyMessage
     if (activationLetter && activationLetter !== "") this.#activationLetter = activationLetter
 
     this.#checkTagOptions()
@@ -155,6 +157,8 @@ export default class HotKeyPad {
       const input = event.target as HTMLInputElement
       const value = input.value.toLowerCase()
       const sections = this.#container!.querySelectorAll<HTMLElement>("[data-section]")
+      const emptySection = this.#container!.querySelector<HTMLElement>("[data-empty]")
+      
       sections.forEach((section) => {
         const list = section.querySelector("ul")!
         const items = list.querySelectorAll("li")
@@ -169,6 +173,10 @@ export default class HotKeyPad {
         if (visibleItems.length === 0) section.style.display = "none"
         else section.style.display = "block"
       })
+
+      const visibleSections = this.#container!.querySelectorAll<HTMLElement>("[data-section][style='display: block;']")
+      if (visibleSections.length === 0) emptySection!.style.display = "flex"
+      else emptySection!.style.display = "none"
     })
   }
 
@@ -274,6 +282,12 @@ export default class HotKeyPad {
 
   get #items() {
     return this.#container!.querySelectorAll("li")
+  }
+
+  get emptyMessage() {
+    const message = createElement("div", this.#emptyMessage)
+    message.setAttribute("data-empty", "")
+    return message
   }
 
   /* ICON METHODS */
@@ -384,6 +398,7 @@ export default class HotKeyPad {
       sectionEl.appendChild(listEl)
       sectionsEl.appendChild(sectionEl)
     })
+    sectionsEl.appendChild(this.emptyMessage)
 
     // Append the sections between the header and footer
     this.#container!.insertBefore(sectionsEl, this.#container!.lastChild)

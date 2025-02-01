@@ -102,6 +102,16 @@
   text-transform: capitalize;
 }
 
+#hotkeypad [data-empty] {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1em 1.5em;
+  color: var(--hotkeypad-fg-muted);
+  font-size: 1.15rem;
+}
+
 /* HotKeyPad Items */
 #hotkeypad [data-hotkey] {
   position: relative;
