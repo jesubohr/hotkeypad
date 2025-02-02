@@ -7,6 +7,8 @@ Built with vanilla JS, no external dependencies. Inspired in design and function
 ![npm](https://img.shields.io/npm/dw/hotkeypad)
 
 ## Demo
+To see it in action, check out my [resume](https://resume.jesubohrdev.com).
+
 ![Demo](./docs/hotkeypad-demo.gif)
 
 ## Motivation
