@@ -4,7 +4,7 @@ export interface HotKeyPadCommand {
   icon?: string
   hotkey: string
   section?: string
-  handler: () => void
+  handler: (instance: HTMLElement) => void
 }
 
 export type HotKeyPadOptionsProps = {

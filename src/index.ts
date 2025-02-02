@@ -95,7 +95,7 @@ export default class HotKeyPad {
           const keyCode = `Key${keyLetter}`
           if (event.code === keyCode) {
             event.preventDefault()
-            if (handler != null) setTimeout(() => handler(), 200)
+            if (handler != null) setTimeout(() => handler(this.instance), 200)
             this.close()
           }
           return false
@@ -189,7 +189,7 @@ export default class HotKeyPad {
   #activateItem(item: HTMLElement) {
     this.#commands.find(({ hotkey, handler }) => {
       if (item.getAttribute("data-hotkey") === hotkey) {
-        if (handler != null) setTimeout(() => handler(), 200)
+        if (handler != null) setTimeout(() => handler(this.instance), 200)
         this.close()
       }
       return false
@@ -373,7 +373,7 @@ export default class HotKeyPad {
         const stringIcon = this.#isCustomIcon(icon) ? icon : `<img src="${this.#iconURL(icon)}" alt="${title}" />`
 
         const itemEl = createElement("li")
-        itemEl.setAttribute("data-hotkey", hotkey.toLowerCase())
+        itemEl.setAttribute("data-hotkey", hotkey)
 
         if (stringIcon !== "") {
           const itemIcon = createElement("span")
