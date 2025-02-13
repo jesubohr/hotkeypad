@@ -150,6 +150,7 @@ export default class HotKeyPad {
 
       items[this.currentIndex].removeAttribute("data-active")
       items[nextIndex].setAttribute("data-active", "")
+      items[nextIndex].scrollIntoView({ behavior: "smooth" });
     })
 
     // Listen for the search input
