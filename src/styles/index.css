@@ -88,6 +88,9 @@
   gap: 0.5rem;
   padding: 0.5rem 0;
   border-block: 1px solid var(--hotkeypad-border-container);
+  height: 60vh;
+	max-height: 640px;
+	overflow: auto;
 }
 
 #hotkeypad [data-section] {
