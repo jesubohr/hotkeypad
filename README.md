@@ -23,6 +23,16 @@ You can install hotkeypad via npm, pnpm or yarn. Here's how you can do it with n
 npm install hotkeypad
 ```
 
+Or also via CDN:
+
+```html
+<!-- Latest Version -->
+<script type="module">
+  import HotKeyPad from 'https://unpkg.com/hotkeypad?module'
+  const hotkeypad = new HotKeyPad()
+</script>
+```
+
 ## Usage
 
 To use HotKeyPad, you need to import the package and create a new instance of the HotKeyPad class. You can then add commands to the keypad and display it on your web app.
