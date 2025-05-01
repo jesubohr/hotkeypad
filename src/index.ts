@@ -362,7 +362,7 @@ export default class HotKeyPad {
       if (section !== "Unlisted") {
         const titleEl = createElement("h4", section)
         titleEl.setAttribute("id", `section-${section.toLowerCase()}`)
-        sectionEl.setAttribute("aria-labelledby", `section-${section.toLowerCase()}`)
+        sectionEl.setAttribute("aria-label", `section-${section.toLowerCase()}`)
         sectionEl.appendChild(titleEl)
       }
       const listEl = createElement("ul")
