@@ -39,7 +39,7 @@ Or also via CDN:
 
 To use HotKeyPad, you need to import the package and create a new instance of the HotKeyPad class. You can then add commands to the keypad and display it on your web app.
 
-First, add thee following tag to your page:
+First, add the following tag to your page:
 ```html
 <div id="hotkeypad"></div>
 ```
@@ -115,6 +115,9 @@ Open the keypad.
 
 ### `close(): void`
 Close the keypad.
+
+### `destroy(): void`
+Destroy the HotKeyPad instance and clean up all resources. Removes event listeners, disconnects observers, and clears DOM references. Call this when removing the HotKeyPad from your application.
 
 ## Events
 

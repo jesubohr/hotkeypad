@@ -23,26 +23,32 @@ export function createElement(
  * @param element The element to listen to
  * @param event The event to listen for
  * @param callback The callback to execute
+ * @returns The stored listener object for cleanup
  */
-export function createListener<T>(
-  element: HTMLElement | Document | Window,
-  event: keyof HTMLElementEventMap,
-  callback: (event: T) => void
-) {
-  element.addEventListener(event, callback as EventListener)
+export function createListener<E extends HTMLElement | Document | Window>(
+  element: E,
+  event: string,
+  callback: EventListener
+): { element: E; event: string; callback: EventListener } {
+  element.addEventListener(event, callback)
+  return { element, event, callback }
 }
 
 /**
  * Extract the valid letter from the hotkey
  * @param hotkey The hotkey to extract the letter from
- * @returns The activation letter in uppercase
+ * @returns The activation letter in uppercase, or null if invalid
  * @example
- * extractHotkey("Control + D") // "D"
- * extractHotkey("control + shift + l") // "L"
+ * extractHotkeyLetter("Control + D") // "D"
+ * extractHotkeyLetter("control + shift + l") // "L"
+ * extractHotkeyLetter("") // null
  */
-export function extractHotkeyLetter(hotkey: string) {
-  const key = hotkey.match(/\w+$/)?.[0]! ?? ""
-  return key === "" || key.length > 1 ? "" : key.toUpperCase()
+export function extractHotkeyLetter(hotkey: string): string | null {
+  const match = hotkey.match(/\w+$/)
+  if (!match) return null
+  const key = match[0]
+  if (key.length !== 1) return null
+  return key.toUpperCase()
 }
 
 const VALID_META_KEYS = ["Control", "Shift", "Alt", "Meta"]

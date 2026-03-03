@@ -7,7 +7,7 @@
     /* Modules */
     "module": "ES6",
     "rootDir": "./src",
-    "moduleResolution": "node10",
+    "moduleResolution": "bundler",
 
     /* Emit */
     "declaration": true,
