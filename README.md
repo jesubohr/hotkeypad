@@ -9,6 +9,8 @@ Built with vanilla JS, no external dependencies. Inspired in design and function
 ## Demo
 To see it in action, check out my [resume](https://resume.jesubohr.dev).
 
+Also check the [Detailed Documentation](https://jesubohr-hotkeypad.mintlify.app/introduction).
+
 ![Demo](./docs/hotkeypad-demo.gif)
 
 ## Motivation
