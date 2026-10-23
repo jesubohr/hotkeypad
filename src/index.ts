@@ -1,5 +1,10 @@
-import type { HotKeyPadCommand, HotKeyPadOptionsProps, StoredListener } from "./types"
-import { createElement, createListener, extractHotkeyLetter, isValidHotkey } from "./utils"
+import type { HotKeyPadCommand, HotKeyPadOptionsProps, StoredListener } from "./types.js"
+import { createElement, createListener, eventHotkey, parseHotkey } from "./utils.js"
+
+export type { HotKeyPadCommand, HotKeyPadOptionsProps } from "./types.js"
+
+let nextInstanceId = 0
+let openInstance: HotKeyPad | null = null
 
 /**
  * HotKeyPad - A lightweight keyboard shortcuts interface for web applications.
@@ -25,7 +30,12 @@ export default class HotKeyPad {
   #backdrop: HTMLElement | null = null
   #container: HTMLElement | null = null
   #commands: HotKeyPadCommand[] = []
+  #shortcuts = new Map<string, HotKeyPadCommand>()
   #listeners: StoredListener[] = []
+  #previousFocus: HTMLElement | null = null
+  #originalStyles: Map<string, string>
+  #originalAttributes: Map<string, string | null>
+  #listId = `hotkeypad-list-${++nextInstanceId}`
   currentIndex = 0
 
   #closeKey = "Escape"
@@ -42,12 +52,14 @@ export default class HotKeyPad {
    * @param options Configuration options for the HotKeyPad
    * @throws Error if #hotkeypad element is not found in the DOM
    */
-  constructor({ closeKey, placeholder, emptyMessage, activationLetter }: HotKeyPadOptionsProps = {}) {
-    const element = document.getElementById("hotkeypad")
+  constructor({ element: mount, closeKey, placeholder, emptyMessage, activationLetter }: HotKeyPadOptionsProps = {}) {
+    const element = mount ?? document.getElementById("hotkeypad")
     if (element == null) {
       throw new Error("HotKeyPad instance not found in the DOM")
     }
     this.instance = element
+    this.#originalStyles = new Map(["visibility", "opacity", "pointer-events"].map((name) => [name, element.style.getPropertyValue(name)]))
+    this.#originalAttributes = new Map(["aria-expanded", "data-hotkeypad"].map((name) => [name, element.getAttribute(name)]))
     this.#activationKey = navigator.userAgent.includes("Macintosh") ? "Cmd" : "Ctrl"
 
     if (closeKey && closeKey !== "") this.#closeKey = closeKey
@@ -56,6 +68,9 @@ export default class HotKeyPad {
     if (activationLetter && activationLetter !== "") this.#activationLetter = activationLetter
 
     this.#checkTagOptions()
+    if (!/^[a-z]$/i.test(this.#activationLetter)) throw new Error("The activation letter must be a letter from A to Z")
+    this.instance.setAttribute("data-hotkeypad", "")
+    this.#svgIconColor = this.instance.classList.contains("dark") ? "white" : "black"
     this.#init()
     return this
   }
@@ -64,12 +79,18 @@ export default class HotKeyPad {
   #init() {
     const documentListener = createListener(document, "keydown", (event: Event) => {
       const keyEvent = event as KeyboardEvent
+      if (keyEvent.defaultPrevented || keyEvent.isComposing || keyEvent.repeat) return
       const keyCode = `Key${this.#activationLetter.toUpperCase()}`
-      if (keyEvent.code === keyCode && (keyEvent.metaKey || keyEvent.ctrlKey)) {
+      if (keyEvent.code === keyCode && (keyEvent.metaKey !== keyEvent.ctrlKey) && !keyEvent.altKey && !keyEvent.shiftKey) {
         keyEvent.preventDefault()
-        this.#isOpen ? this.close() : this.open()
+        const active = openInstance
+        if (active && active.#activationLetter.toUpperCase() === this.#activationLetter.toUpperCase()) active.close()
+        else this.open()
       }
-      if (keyEvent.key.toLowerCase() === this.#closeKey.toLowerCase()) this.close()
+      if (this.#isOpen && keyEvent.key.toLowerCase() === this.#closeKey.toLowerCase()) {
+        keyEvent.preventDefault()
+        this.close()
+      }
     })
     this.#listeners.push(documentListener)
 
@@ -84,9 +105,24 @@ export default class HotKeyPad {
     this.#createContainer()
     this.#createHeader()
     this.#createFooter()
+    this.#renderCommands()
+    this.#setListeners()
+    this.instance.style.visibility = "hidden"
+    this.instance.style.opacity = "0"
+    this.instance.style.pointerEvents = "none"
+    this.#container?.setAttribute("hidden", "")
+
+    const focusListener = createListener(document, "focusin", (event: Event) => {
+      if (this.#isOpen && event.target instanceof Node && !this.#container?.contains(event.target)) {
+        this.#container?.querySelector("input")?.focus()
+      }
+    })
+    this.#listeners.push(focusListener)
   }
 
   #checkTagOptions() {
+    const emptyMessage = this.instance.getAttribute("data-empty-message")
+    if (emptyMessage) this.#emptyMessage = emptyMessage
     if (this.instance.hasAttribute("data-placeholder") && this.instance.getAttribute("data-placeholder") !== "") {
       const attr = this.instance.getAttribute("data-placeholder")
       if (attr) this.#placeholder = attr
@@ -121,143 +157,150 @@ export default class HotKeyPad {
 
     const keydownListener = createListener(this.#container, "keydown", (event: Event) => {
       const keyEvent = event as KeyboardEvent
-      if (keyEvent.metaKey || keyEvent.ctrlKey) {
-        this.#commands.find(({ hotkey, handler }) => {
-          const keyLetter = extractHotkeyLetter(hotkey)
-          if (!keyLetter) return false
-          const keyCode = `Key${keyLetter}`
-          if (keyEvent.code === keyCode) {
-            keyEvent.preventDefault()
-            if (handler != null) setTimeout(() => handler(this.instance), 200)
-            this.close()
-          }
-          return false
-        })
+      if (!this.#isOpen || keyEvent.defaultPrevented || keyEvent.isComposing) return
+      if (keyEvent.key === "Tab") {
+        this.#trapFocus(keyEvent)
+        return
       }
+      if (keyEvent.repeat && keyEvent.key !== "ArrowUp" && keyEvent.key !== "ArrowDown") return
+
+      const shortcut = eventHotkey(keyEvent)
+      const command = shortcut ? this.#shortcuts.get(shortcut) : undefined
+      if (command) {
+        keyEvent.preventDefault()
+        this.#executeCommand(command)
+        return
+      }
+      if (keyEvent.altKey || keyEvent.ctrlKey || keyEvent.metaKey || keyEvent.shiftKey) return
+      if (!["Enter", "ArrowUp", "ArrowDown"].includes(keyEvent.key)) return
+      if (keyEvent.target !== this.#container?.querySelector("input")) return
+      keyEvent.preventDefault()
+
+      const items = this.#visibleItems
+      if (keyEvent.key === "Enter") {
+        const item = items[this.currentIndex]
+        if (item) this.#activateItem(item)
+        return
+      }
+      if (items.length === 0) return
+      const step = keyEvent.key === "ArrowUp" ? -1 : 1
+      this.#selectItem(items[(this.currentIndex + step + items.length) % items.length])
+      items[this.currentIndex]?.scrollIntoView({ block: "nearest" })
     })
     this.#listeners.push(keydownListener)
 
     const clickListener = createListener(this.#container, "click", (event: Event) => {
-      const mouseEvent = event as MouseEvent
-      const item = mouseEvent.target as HTMLElement
-      if (item.tagName === "LI") this.#activateItem(item)
-      if (item.parentElement?.tagName === "LI") this.#activateItem(item.parentElement)
+      const item = this.#eventItem(event)
+      if (this.#isOpen && item) this.#activateItem(item)
     })
     this.#listeners.push(clickListener)
 
     const mouseoverListener = createListener(this.#container, "mouseover", (event: Event) => {
-      const mouseEvent = event as MouseEvent
-      const item = mouseEvent.target as HTMLElement
-      if (item.tagName === "LI") {
-        this.#items.forEach((i) => i.removeAttribute("data-active"))
-        item.setAttribute("data-active", "")
-      }
+      const item = this.#eventItem(event)
+      if (this.#isOpen && item && !item.hidden) this.#selectItem(item)
     })
     this.#listeners.push(mouseoverListener)
 
-    const navigationListener = createListener(this.#container, "keydown", (event: Event) => {
-      const keyEvent = event as KeyboardEvent
-      const items = this.#items
-      this.currentIndex = Array.from(items).findIndex((item) => item.hasAttribute("data-active"))
-      this.currentIndex = this.currentIndex === -1 ? 0 : this.currentIndex
-      let nextIndex = 0
-
-      if (keyEvent.key === "Enter") {
-        keyEvent.preventDefault()
-        const currentItem = items[this.currentIndex]
-        if (currentItem) {
-          this.#activateItem(currentItem)
-          currentItem.removeAttribute("data-active")
-        }
-        this.currentIndex = 0
-      }
-
-      if (keyEvent.key === "ArrowUp") {
-        keyEvent.preventDefault()
-        nextIndex = this.currentIndex - 1 < 0 ? items.length - 1 : this.currentIndex - 1
-      }
-
-      if (keyEvent.key === "ArrowDown") {
-        keyEvent.preventDefault()
-        nextIndex = this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
-      }
-
-      if (keyEvent.key === "Tab") {
-        keyEvent.preventDefault()
-        nextIndex = this.currentIndex + 1 > items.length - 1 ? 0 : this.currentIndex + 1
-      }
-
-      const currentItem = items[this.currentIndex]
-      const nextItem = items[nextIndex]
-      if (currentItem) currentItem.removeAttribute("data-active")
-      if (nextItem) {
-        nextItem.setAttribute("data-active", "")
-        nextItem.scrollIntoView({ behavior: "smooth" })
-      }
-    })
-    this.#listeners.push(navigationListener)
-
     const inputListener = createListener(this.#container, "input", (event: Event) => {
-      const inputEvent = event as InputEvent
-      const input = inputEvent.target as HTMLInputElement
-      const value = input.value.toLowerCase()
-      const sections = this.#container?.querySelectorAll<HTMLElement>("[data-section]")
-      const emptySection = this.#container?.querySelector<HTMLElement>("[data-empty]")
-      
-      if (!sections || !emptySection) return
-
-      sections.forEach((section) => {
-        const list = section.querySelector("ul")
-        if (!list) return
-        const items = list.querySelectorAll("li")
-
-        items.forEach((item) => {
-          const titleEl = item.querySelector("p")
-          const title = titleEl?.innerText?.toLowerCase() ?? ""
-          if (title.includes(value)) item.style.display = "flex"
-          else item.style.display = "none"
-        })
-
-        const visibleItems = list.querySelectorAll("li[style='display: flex;']")
-        if (visibleItems.length === 0) section.style.display = "none"
-        else section.style.display = "block"
-      })
-
-      const visibleSections = this.#container?.querySelectorAll<HTMLElement>("[data-section][style='display: block;']")
-      if (visibleSections && visibleSections.length === 0) emptySection.style.display = "flex"
-      else emptySection.style.display = "none"
+      if (event.target === this.#container?.querySelector("input")) this.#filterCommands()
     })
     this.#listeners.push(inputListener)
   }
 
   /* HELPER METHODS */
-  #activateItem(item: HTMLElement) {
-    this.#commands.find(({ hotkey, handler }) => {
-      if (item.getAttribute("data-hotkey") === hotkey) {
-        if (handler != null) setTimeout(() => handler(this.instance), 200)
-        this.close()
-      }
-      return false
+  #eventItem(event: Event) {
+    if (!(event.target instanceof Element)) return null
+    const item = event.target.closest<HTMLElement>("[data-command-id]")
+    return item && this.#container?.contains(item) ? item : null
+  }
+
+  #trapFocus(event: KeyboardEvent) {
+    if (!this.#container) return
+    const elements = Array.from(this.#container.querySelectorAll<HTMLElement>(
+      'input, button, a[href], select, textarea, [tabindex]'
+    )).filter((element) => element.tabIndex >= 0 && !element.matches(":disabled") &&
+      !element.closest("[hidden], [inert]") && element.getClientRects().length > 0)
+    const first = elements[0]
+    const last = elements[elements.length - 1]
+    if (!first || !last) {
+      event.preventDefault()
+      this.#container.focus()
+    } else if (event.shiftKey && (document.activeElement === first || document.activeElement === this.#container)) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === this.#container)) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
+  #selectItem(item?: HTMLElement) {
+    this.#items.forEach((element) => {
+      element.removeAttribute("data-active")
+      element.setAttribute("aria-selected", "false")
     })
+    const input = this.#container?.querySelector("input")
+    input?.removeAttribute("aria-activedescendant")
+    this.currentIndex = item ? this.#visibleItems.indexOf(item) : 0
+    if (item) {
+      item.setAttribute("data-active", "")
+      item.setAttribute("aria-selected", "true")
+      input?.setAttribute("aria-activedescendant", item.id)
+    }
+  }
+
+  #filterCommands() {
+    const value = this.#container?.querySelector("input")?.value.toLowerCase() ?? ""
+    this.#items.forEach((item) => {
+      const title = item.querySelector("p")?.textContent?.toLowerCase() ?? ""
+      item.hidden = !title.includes(value)
+    })
+    this.#container?.querySelectorAll<HTMLElement>("[data-section]").forEach((section) => {
+      section.hidden = !section.querySelector("[data-command-id]:not([hidden])")
+    })
+    const emptySection = this.#container?.querySelector<HTMLElement>("[data-empty]")
+    if (emptySection) emptySection.hidden = this.#visibleItems.length > 0
+    this.#selectItem(this.#visibleItems[0])
+  }
+
+  #executeCommand(command: HotKeyPadCommand) {
+    this.close()
+    command.handler(this.instance)
+  }
+
+  #activateItem(item: HTMLElement) {
+    if (item.hidden) return
+    const command = this.#commands.find(({ id }) => id === item.getAttribute("data-command-id"))
+    if (command) this.#executeCommand(command)
   }
 
   #verifyCommands(commands: HotKeyPadCommand[]) {
-    if (commands.length === 0) throw new Error("The commands array cannot be empty")
-    commands.forEach((command) => {
-      if (command.id === "" || command.title === "" || command.hotkey === "" || command.handler == null)
-        throw new Error("The command object is not valid. It should contain an id, title, hotkey and handler")
-
-      if (!isValidHotkey(command.hotkey))
-        throw new Error(
-          "The hotkey is not valid. It should only contain CTRL, CMD, ALT, SHIFT and a letter. Also it cannot contain browser or system reserved hotkeys such as CTRL+T, CTRL+N, CTRL+W, etc."
-        )
-
+    if (!Array.isArray(commands)) throw new Error("The commands must be an array")
+    const ids = new Set<string>()
+    const shortcuts = new Map<string, HotKeyPadCommand>()
+    const verified = commands.map((command) => {
+      if (!command || typeof command.id !== "string" || command.id.trim() === "" ||
+        typeof command.title !== "string" || command.title.trim() === "" || typeof command.handler !== "function") {
+        throw new Error("The command must contain an id, title, and handler function")
+      }
+      if (ids.has(command.id)) throw new Error(`Duplicate command id: ${command.id}`)
+      ids.add(command.id)
       if (command.icon != null && typeof command.icon !== "string") throw new Error("The icon should be a string")
-
-      const keys = command.hotkey.match(/\w+/g) ?? []
-      if (keys.length > 2) throw new Error("The hotkey only supports 2 keys maximum")
+      const copy = { ...command }
+      if (command.hotkey !== undefined) {
+        const shortcut = typeof command.hotkey === "string" ? parseHotkey(command.hotkey) : null
+        if (!shortcut) throw new Error(`Invalid hotkey: ${command.hotkey}`)
+        if (shortcuts.has(shortcut)) throw new Error(`Duplicate hotkey: ${command.hotkey}`)
+        const letter = this.#activationLetter.toUpperCase()
+        if (shortcut === `Control+${letter}` || shortcut === `Meta+${letter}`) {
+          throw new Error("The command hotkey conflicts with the palette activation shortcut")
+        }
+        shortcuts.set(shortcut, copy)
+      }
+      return copy
     })
-    return commands
+    this.#shortcuts = shortcuts
+    return verified
   }
 
   #hasCustomFooter(footerEl: HTMLElement) {
@@ -276,14 +319,19 @@ export default class HotKeyPad {
    * Dispatches 'hotkeypad:open' custom event.
    */
   open() {
-    if (this.#isDestroyed) return
-    window.dispatchEvent(new CustomEvent("hotkeypad:open"))
+    if (this.#isDestroyed || this.#isOpen) return
+    openInstance?.close()
+    openInstance = this
+    this.#previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
     this.instance.setAttribute("aria-expanded", "true")
-
+    this.#container?.removeAttribute("hidden")
     this.instance.style.opacity = "1"
     this.instance.style.visibility = "visible"
     this.instance.style.pointerEvents = "auto"
-    setTimeout(() => this.#container?.querySelector("input")?.focus(), 200)
+    const input = this.#container?.querySelector("input")
+    input?.setAttribute("aria-expanded", "true")
+    input?.focus()
+    window.dispatchEvent(new CustomEvent("hotkeypad:open"))
   }
 
   /**
@@ -291,27 +339,35 @@ export default class HotKeyPad {
    * Dispatches 'hotkeypad:close' custom event.
    */
   close() {
-    if (this.#isDestroyed) return
-    window.dispatchEvent(new CustomEvent("hotkeypad:close"))
+    if (this.#isDestroyed || !this.#isOpen) return
+    if (openInstance === this) openInstance = null
     this.instance.setAttribute("aria-expanded", "false")
 
     this.instance.style.opacity = "0"
     this.instance.style.visibility = "hidden"
     this.instance.style.pointerEvents = "none"
     const input = this.#container?.querySelector("input")
-    if (input) input.value = ""
+    if (input) {
+      input.value = ""
+      input.setAttribute("aria-expanded", "false")
+    }
+    this.#filterCommands()
+    this.#container?.setAttribute("hidden", "")
+    const previousFocus = this.#previousFocus
+    this.#previousFocus = null
+    if (previousFocus?.isConnected) previousFocus.focus()
+    window.dispatchEvent(new CustomEvent("hotkeypad:close"))
   }
 
   /**
    * Set the commands to be displayed in the HotKeyPad.
    * @param commands Array of HotKeyPadCommand objects
-   * @throws Error if commands array is empty or contains invalid commands
+   * @throws Error if commands contain invalid entries or duplicate ids or hotkeys
    */
   setCommands(commands: HotKeyPadCommand[]) {
     if (this.#isDestroyed) return
     this.#commands = this.#verifyCommands(commands)
     this.#renderCommands()
-    this.#setListeners()
   }
 
   /**
@@ -321,6 +377,7 @@ export default class HotKeyPad {
    */
   destroy() {
     if (this.#isDestroyed) return
+    this.close()
     this.#isDestroyed = true
 
     this.#observer.disconnect()
@@ -340,6 +397,16 @@ export default class HotKeyPad {
     }
 
     this.#commands = []
+    this.#shortcuts.clear()
+    this.#previousFocus = null
+    this.#originalStyles.forEach((value, name) => {
+      if (value) this.instance.style.setProperty(name, value)
+      else this.instance.style.removeProperty(name)
+    })
+    this.#originalAttributes.forEach((value, name) => {
+      if (value === null) this.instance.removeAttribute(name)
+      else this.instance.setAttribute(name, value)
+    })
   }
 
   /* GETTERS */
@@ -374,7 +441,11 @@ export default class HotKeyPad {
   }
 
   get #items() {
-    return this.#container?.querySelectorAll("li") ?? document.querySelectorAll("li.nonexistent")
+    return Array.from(this.#container?.querySelectorAll<HTMLElement>("[data-command-id]") ?? [])
+  }
+
+  get #visibleItems() {
+    return this.#items.filter((item) => !item.hidden)
   }
 
   get emptyMessage() {
@@ -429,7 +500,8 @@ export default class HotKeyPad {
       "data-container": "",
       "role": "dialog",
       "aria-modal": "true",
-      "aria-label": "Command palette"
+      "aria-label": "Command palette",
+      "tabindex": "-1"
     })
     this.instance.setAttribute("aria-expanded", "false")
     this.instance.appendChild(this.#container)
@@ -443,6 +515,10 @@ export default class HotKeyPad {
       name: this.#placeholder.toLocaleLowerCase(),
       placeholder: this.#placeholder,
       "aria-label": this.#placeholder,
+      "role": "combobox",
+      "aria-autocomplete": "list",
+      "aria-expanded": "false",
+      "aria-controls": this.#listId,
       autocomplete: "off",
       spellcheck: "false"
     })
@@ -478,29 +554,36 @@ export default class HotKeyPad {
     if (!this.#container) return
     const sectionsEl = createElement("div")
     sectionsEl.setAttribute("data-sections", "")
+    sectionsEl.id = this.#listId
+    sectionsEl.setAttribute("role", "listbox")
+    sectionsEl.setAttribute("aria-label", "Commands")
 
-    this.#sections.forEach(([section, commands]) => {
+    this.#sections.forEach(([section, commands], sectionIndex) => {
       const sectionEl = createElement("div")
       sectionEl.setAttribute("data-section", section.toLowerCase())
+      sectionEl.setAttribute("role", "group")
+      sectionEl.setAttribute("aria-label", section)
 
       if (section !== "Unlisted") {
         const titleEl = createElement("h4", section)
-        titleEl.setAttribute("id", `section-${section.toLowerCase()}`)
-        sectionEl.setAttribute("aria-label", `section-${section.toLowerCase()}`)
+        titleEl.id = `${this.#listId}-section-${sectionIndex}`
+        sectionEl.setAttribute("aria-labelledby", titleEl.id)
         sectionEl.appendChild(titleEl)
       }
       const listEl = createElement("ul")
-      listEl.setAttribute("role", "listbox")
-      listEl.setAttribute("aria-label", `${section} commands`)
+      listEl.setAttribute("role", "presentation")
 
-      commands.forEach(({ title, icon, hotkey }) => {
-        const keys = hotkey.split("+").map((key) => key.trim())
+      commands.forEach(({ id, title, icon, hotkey }, itemIndex) => {
+        const keys = hotkey?.split("+").map((key) => key.trim()) ?? []
         const iconValue = icon ?? ""
         
         const itemEl = createElement("li")
-        itemEl.setAttribute("data-hotkey", hotkey)
+        itemEl.setAttribute("data-hotkey", hotkey ?? "")
+        itemEl.setAttribute("data-command-id", id)
+        itemEl.id = `${this.#listId}-item-${sectionIndex}-${itemIndex}`
         itemEl.setAttribute("role", "option")
-        itemEl.setAttribute("aria-label", `${title}, shortcut: ${hotkey}`)
+        itemEl.setAttribute("aria-selected", "false")
+        itemEl.setAttribute("aria-label", hotkey ? `${title}, shortcut: ${hotkey}` : title)
 
         const iconEl = this.#createIconElement(iconValue, title)
         if (iconEl.hasChildNodes() || iconEl.textContent) {
@@ -517,24 +600,26 @@ export default class HotKeyPad {
         })
 
         itemEl.appendChild(itemTitle)
-        itemEl.appendChild(itemKeys)
+        if (keys.length > 0) itemEl.appendChild(itemKeys)
         listEl.appendChild(itemEl)
       })
 
       sectionEl.appendChild(listEl)
       sectionsEl.appendChild(sectionEl)
     })
-    sectionsEl.appendChild(this.emptyMessage)
-
     this.#container.insertBefore(sectionsEl, this.#container.lastChild)
+    this.#container.insertBefore(this.emptyMessage, this.#container.lastChild)
   }
 
   #renderCommands() {
     if (!this.#container) return
+    const activeId = this.#items.find((item) => item.hasAttribute("data-active"))?.getAttribute("data-command-id")
     const sectionsEl = this.#container.querySelector("[data-sections]")
     if (sectionsEl) sectionsEl.remove()
+    this.#container.querySelector("[data-empty]")?.remove()
     this.#createSections()
-    const firstItem = this.#items[0]
-    if (firstItem) firstItem.setAttribute("data-active", "")
+    this.#filterCommands()
+    const activeItem = this.#visibleItems.find((item) => item.getAttribute("data-command-id") === activeId)
+    if (activeItem) this.#selectItem(activeItem)
   }
 }

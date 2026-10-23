@@ -9,8 +9,8 @@ export interface HotKeyPadCommand {
   title: string
   /** Optional icon (SVG string, img tag, i tag, or Simple Icons name) */
   icon?: string
-  /** Hotkey combination (e.g., "Ctrl+K", "Cmd+P") */
-  hotkey: string
+  /** Optional hotkey combination (e.g., "Ctrl+P", "Cmd+P") */
+  hotkey?: string
   /** Optional section to group commands under */
   section?: string
   /** Handler function executed when command is triggered */
@@ -21,6 +21,8 @@ export interface HotKeyPadCommand {
  * Configuration options for the HotKeyPad instance.
  */
 export type HotKeyPadOptionsProps = {
+  /** Mount element (default: document.getElementById("hotkeypad")) */
+  element?: HTMLElement
   /** Key to close the keypad (default: "Escape") */
   closeKey?: string
   /** Placeholder text for the search input (default: "Search command") */

@@ -25,13 +25,21 @@ You can install hotkeypad via npm, pnpm or yarn. Here's how you can do it with n
 npm install hotkeypad
 ```
 
-Or also via CDN:
+Import the stylesheet in your application:
+
+```javascript
+import 'hotkeypad/index.css'
+```
+
+For a page without a bundler, load the ESM entry and stylesheet from a CDN:
 
 ```html
-<!-- Latest Version -->
+<link rel="stylesheet" href="https://unpkg.com/hotkeypad@latest/dist/styles/index.css">
+<div id="hotkeypad"></div>
 <script type="module">
-  import HotKeyPad from 'https://unpkg.com/hotkeypad?module'
-  const hotkeypad = new HotKeyPad()
+  import HotKeyPad from 'https://unpkg.com/hotkeypad@latest/dist/index.js'
+  const element = document.querySelector('#hotkeypad')
+  const hotkeypad = new HotKeyPad({ element })
 </script>
 ```
 
@@ -39,7 +47,8 @@ Or also via CDN:
 
 To use HotKeyPad, you need to import the package and create a new instance of the HotKeyPad class. You can then add commands to the keypad and display it on your web app.
 
-First, add the following tag to your page:
+Add the palette element to your page. The default element ID is `hotkeypad`. The library adds `data-hotkeypad` to custom mount elements so the package styles can target them.
+
 ```html
 <div id="hotkeypad"></div>
 ```
@@ -56,8 +65,7 @@ hotkeypad.setCommands([
     section: "Actions",
     id: "print",
     title: "Print Page",
-    icon: `#custom-icon-print#`, // You can insert your own icon here, being and svg, image or font icon
-    hotkey: `${hotKeyPad.activationKey} + P`, // You can use the default activation key or set your own
+    hotkey: `${hotkeypad.activationKey}+Shift+P`,
     handler: () => {
       window.print()
     }
@@ -73,7 +81,7 @@ window.addEventListener('hotkeypad:close', () => {
   console.log('HotKeyPad is closed')
 })
 ```
-The default activation key is `Ctrl` for Windows/Linux and `Cmd` for Mac.
+The default activation key is `Ctrl` on Windows and Linux, and `Cmd` on macOS. You can pass an element directly with `new HotKeyPad({ element })` instead of using the default ID.
 
 ## Features
 
@@ -83,31 +91,37 @@ The default activation key is `Ctrl` for Windows/Linux and `Cmd` for Mac.
 - Customizable colors with CSS variables
 - Customizable activation key
 
-## Attributes
-You can pass the following attributes to the `HotKeyPad` constructor or to the html tag (data- prefix is required with kebab-case for the attribute name).
+## Options
 
-| Field       | Default        | Description                                             |
-|-------------|----------------|---------------------------------------------------------|
-| placeholder | Search command | Placeholder text for the search input.                  |
-| emptyMessage | No commands found | Message to display when there are no commands.      |
-| activationLetter | `K` | The activation letter for the commands. Default is `K`.       |
-| closeKey | `Escape` | The key to close the keypad. Default is `Escape`.                |
+Pass options to the constructor or set the matching `data-*` attributes on the palette element.
+
+| Option | Default | Data attribute | Description |
+|---|---|---|---|
+| `element` | Element with ID `hotkeypad` | Not available | Palette root element. |
+| `placeholder` | `Search command` | `data-placeholder` | Search field placeholder. |
+| `emptyMessage` | `No commands found` | `data-empty-message` | Text shown when the list is empty. |
+| `activationLetter` | `K` | `data-activation-letter` | Final letter in the activation shortcut. |
+| `closeKey` | `Escape` | `data-close-key` | Key that closes the palette. |
+
+The activation shortcut accepts `Ctrl` or `Cmd` plus the activation letter. The displayed modifier follows the operating system. Command shortcuts can include one or more modifiers and must end with a letter from `A` to `Z`, for example `Ctrl+Shift+P`.
 
 ## Commands Format
-Array of HotKeyPadData that represent the commands that will be displayed on the keypad.
+Array of HotKeyPadCommand objects that represent the commands that will be displayed on the keypad.
 
 | Field     | Type     | Description                                                                 |
 |-----------|----------|-----------------------------------------------------------------------------|
 | id        | string   | The unique identifier of the command.                                       |
 | title     | string   | The title of the command.                                                   |
-| hotkey    | string   | The hotkey combination for the command. Format: `{ActivationKey}+{Letter}`  |
+| hotkey    | string (optional) | Shortcut with one or more modifiers and a final letter, such as `Ctrl+Shift+P`. |
 | handler   | Function | The function to be executed when the command is triggered.                  |
 | icon      | string (optional)   | The icon of the command.                                                    |
 | section   | string (optional)   | The section of the command. Allows you to group commands.                   |
 
+Command IDs and normalized shortcuts must be unique. Shortcuts cannot use the palette activation combination or the reserved Ctrl/Cmd combinations for T, N, and W. An empty command array is allowed. Command shortcuts run only while the palette is open. Modifier keys must match the shortcut exactly.
+
 ## Methods
 
-### `setCommands(commands: HotKeyPadData[]): void`
+### `setCommands(commands: HotKeyPadCommand[]): void`
 Set the commands that will be displayed on the keypad.  
 
 ### `open(): void`
@@ -117,7 +131,12 @@ Open the keypad.
 Close the keypad.
 
 ### `destroy(): void`
-Destroy the HotKeyPad instance and clean up all resources. Removes event listeners, disconnects observers, and clears DOM references. Call this when removing the HotKeyPad from your application.
+Remove the palette and its event listeners. Call this when you remove the palette from your application.
+
+### `isDestroyed: boolean`
+Read whether `destroy()` has been called.
+
+Only one palette can remain open at a time. The palette traps focus while open and restores focus when it closes. It runs command handlers immediately after activation. It adds event listeners once, even when you call `setCommands` more than once.
 
 ## Events
 
@@ -143,7 +162,7 @@ You can customize the colors of the keypad by changing the CSS variables. Here a
 
 Example:
 ```css
-#hotkeypad {
+[data-hotkeypad] {
   --hotkeypad-bg-container: red;
 }
 ```
@@ -152,16 +171,18 @@ Example:
 Allowing you to style specific elements from your style.
   
 ```css
-#hotkeypad [data-backdrop] {}
-#hotkeypad [data-container] {}
-#hotkeypad [data-sections] {}
-#hotkeypad [data-section] {}
-#hotkeypad [data-empty] {}
-#hotkeypad [data-hotkey] {}
-#hotkeypad [data-hotkey][data-active] {}
+[data-hotkeypad] [data-backdrop] {}
+[data-hotkeypad] [data-container] {}
+[data-hotkeypad] [data-sections] {}
+[data-hotkeypad] [data-section] {}
+[data-hotkeypad] [data-empty] {}
+[data-hotkeypad] [data-hotkey] {}
+[data-hotkeypad] [data-hotkey][data-active] {}
 ```
 
 ## Icons
+
+Custom icon markup must come from a trusted source. The library inserts it as HTML.
 You can use any icon library or custom icons. You can use the `icon` field to set the icon of the command. You can use an image, svg or font icon:
 - `<svg ...><path d="..." /></svg>`
 - `<img src="path/to/image.png" alt="Title" />`

@@ -5,20 +5,29 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "docs/hotkeypad-demo.gif",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "default": "./dist/index.js"
     },
-    "./*.css": {
-      "import": "./dist/styles/*.css",
-      "require": "./dist/styles/*.css"
-    }
+    "./*.css": "./dist/styles/*.css"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "css": "cp src/styles/*.css dist/styles",
-    "init-css": "mkdir dist\\styles"
+    "build": "node scripts/build.mjs",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/build.mjs && node --test",
+    "test:package": "node scripts/check-package.mjs",
+    "prepack": "node scripts/build.mjs"
   },
   "keywords": [
     "hotkey",
@@ -34,6 +43,7 @@
   "author": "Jesus Borrero (jesubohr)",
   "license": "MIT",
   "devDependencies": {
+    "jsdom": "26.1.0",
     "typescript": "5.3.3"
   }
 }

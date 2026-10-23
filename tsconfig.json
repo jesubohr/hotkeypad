@@ -12,6 +12,7 @@
     /* Emit */
     "declaration": true,
     "declarationMap": true,
+    "noEmitOnError": true,
     "outDir": "./dist",
 
     /* Interop Constraints */

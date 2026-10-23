@@ -44,53 +44,46 @@ export function createListener<E extends HTMLElement | Document | Window>(
  * extractHotkeyLetter("") // null
  */
 export function extractHotkeyLetter(hotkey: string): string | null {
-  const match = hotkey.match(/\w+$/)
-  if (!match) return null
-  const key = match[0]
-  if (key.length !== 1) return null
-  return key.toUpperCase()
+  return parseHotkey(hotkey)?.split("+").pop() ?? null
 }
 
-const VALID_META_KEYS = ["Control", "Shift", "Alt", "Meta"]
-const NOT_ALLOWED_HOTKEYS = [
-  "Control+T",
-  "Control+Shift+T",
-  "Control+W",
-  "Control+Shift+W",
-  "Control+N",
-  "Control+Shift+N",
-  "Control+Tab",
-  "Control+Shift+Tab",
-  "Meta+T",
-  "Meta+Shift+T",
-  "Meta+W",
-  "Meta+Shift+W",
-  "Meta+N",
-  "Meta+Shift+N",
-  "Meta+Tab",
-  "Meta+Shift+Tab"
-]
+const MODIFIERS = ["Control", "Meta", "Alt", "Shift"]
+
+/** Normalize a shortcut for validation, conflict checks, and event matching. */
+export function parseHotkey(hotkey: string): string | null {
+  const keys = hotkey.split("+").map((key) => key.trim().toLowerCase())
+  const letter = keys.pop()
+  if (!letter || !/^[a-z]$/.test(letter) || keys.length === 0) return null
+
+  const modifiers: string[] = keys.map((key) => {
+    if (key === "ctrl" || key === "control") return "Control"
+    if (key === "cmd" || key === "meta") return "Meta"
+    if (key === "alt") return "Alt"
+    if (key === "shift") return "Shift"
+    return ""
+  })
+  if (modifiers.includes("") || new Set(modifiers).size !== modifiers.length) return null
+
+  const normalized = MODIFIERS.filter((key) => modifiers.includes(key))
+  if (
+    /^[tnw]$/.test(letter) &&
+    (normalized.join("+") === "Control" || normalized.join("+") === "Control+Shift" ||
+      normalized.join("+") === "Meta" || normalized.join("+") === "Meta+Shift")
+  ) return null
+
+  return [...normalized, letter.toUpperCase()].join("+")
+}
+
+export function eventHotkey(event: KeyboardEvent): string | null {
+  if (!/^Key[A-Z]$/.test(event.code)) return null
+  const modifiers = [event.ctrlKey, event.metaKey, event.altKey, event.shiftKey]
+  return [...MODIFIERS.filter((_, index) => modifiers[index]), event.code.slice(3)].join("+")
+}
 /**
  * Validate the given hotkey
  * @param hotkey The hotkey to verify
  * @returns Whether the hotkey is valid or not
  */
 export function isValidHotkey(hotkey: string) {
-  const keys = hotkey.match(/\w+/g) ?? []
-  if (keys.length === 0) return false
-
-  const hotkeyString = keys
-    .map((key) => {
-      if (key.toUpperCase() === "CTRL") return "Control"
-      if (key.toUpperCase() === "CMD") return "Meta"
-      return key[0].toUpperCase() + key.slice(1).toLowerCase()
-    })
-    .join("+")
-  return (
-    !NOT_ALLOWED_HOTKEYS.includes(hotkeyString) &&
-    hotkeyString
-      .split("+")
-      .slice(0, -1)
-      .every((key) => VALID_META_KEYS.includes(key))
-  )
+  return parseHotkey(hotkey) !== null
 }

@@ -5,33 +5,37 @@ Thank you for your interest in contributing to HotKeyPad! This document provides
 ## Development Setup
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm, pnpm, or yarn
+- Node.js (v20.6 or higher)
+- pnpm
 
 ### Installation
 
 ```bash
 git clone https://github.com/jesubohr/hotkeypad.git
 cd hotkeypad
-npm install
+pnpm install --frozen-lockfile
 ```
 
 ### Building
 
 ```bash
-npm run build
+pnpm build
 ```
 
-This will compile TypeScript to the `dist/` directory.
+This compiles TypeScript and copies the package styles to `dist/`. The build script works on Windows, macOS, and Linux.
 
-### CSS Files
+### Checks and tests
 
-CSS files are copied separately:
+Run the TypeScript check and test suite before opening a pull request:
 
 ```bash
-npm run init-css  # Creates dist/styles directory (first time only)
-npm run css       # Copies CSS files to dist/styles
+pnpm check
+pnpm test
+pnpm test:package
 ```
+
+`pnpm test` builds the package before it runs the Node test suite.
+`pnpm test:package` creates a local archive, then checks imports, declarations, and styles from the unpacked package. It requires pnpm and tar on your PATH. It writes its output to `.package-check/`.
 
 ## Project Structure
 
@@ -73,7 +77,7 @@ hotkeypad/
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/your-feature`)
 3. Make your changes
-4. Build and test your changes
+4. Run `pnpm check` and `pnpm test`
 5. Commit your changes (`git commit -m 'Add some feature'`)
 6. Push to the branch (`git push origin feature/your-feature`)
 7. Open a Pull Request

@@ -1,4 +1,4 @@
-#hotkeypad {
+:is(#hotkeypad, [data-hotkeypad]) {
   --hotkeypad-bg-kbd: #f9fafb;
   --hotkeypad-bg-backdrop: #fff;
   --hotkeypad-bg-container: #fff;
@@ -14,7 +14,7 @@
   transition: opacity 0.2s, visibility 0.2s;
 }
 
-#hotkeypad.dark {
+:is(#hotkeypad, [data-hotkeypad]).dark {
   --hotkeypad-bg-kbd: #1f2937;
   --hotkeypad-bg-backdrop: #000;
   --hotkeypad-bg-container: #1f2937;
@@ -24,7 +24,7 @@
   --hotkeypad-fg-muted: #d1d5db;
 }
 
-#hotkeypad [data-backdrop] {
+:is(#hotkeypad, [data-hotkeypad]) [data-backdrop] {
   position: fixed;
   inset: 0;
   background-color: var(--hotkeypad-bg-backdrop);
@@ -32,7 +32,7 @@
   z-index: 10;
 }
 
-#hotkeypad [data-container] {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -47,14 +47,14 @@
 }
 
 /* HotKeyPad Header */
-#hotkeypad [data-container] header {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] header {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   padding: 1.25rem;
 }
 
-#hotkeypad [data-container] header span {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] header span {
   margin-left: -2px;
   padding-inline: 6px;
   width: fit-content;
@@ -65,24 +65,24 @@
   font-size: 0.875rem;
 }
 
-#hotkeypad [data-container] header input {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] header input {
   width: 100%;
   color: var(--hotkeypad-fg-muted);
   background-color: var(--hotkeypad-bg-container);
   font-size: 1.25rem;
 }
 
-#hotkeypad [data-container] header input::placeholder {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] header input::placeholder {
   color: var(--hotkeypad-fg-muted);
   opacity: 0.75;
 }
 
-#hotkeypad [data-container] header input:focus {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] header input:focus {
   outline: none;
 }
 
 /* HotKeyPad Sections */
-#hotkeypad [data-sections] {
+:is(#hotkeypad, [data-hotkeypad]) [data-sections] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -93,20 +93,20 @@
   overflow: auto;
 }
 
-#hotkeypad [data-section] {
+:is(#hotkeypad, [data-hotkeypad]) [data-section] {
   display: flex;
   flex-direction: column;
 }
 
-#hotkeypad [data-section] h4 {
+:is(#hotkeypad, [data-hotkeypad]) [data-section] h4 {
   padding-left: 1.25rem;
   color: var(--hotkeypad-fg-muted);
   font-size: 0.875rem;
   text-transform: capitalize;
 }
 
-#hotkeypad [data-empty] {
-  display: none;
+:is(#hotkeypad, [data-hotkeypad]) [data-empty] {
+  display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
@@ -116,7 +116,7 @@
 }
 
 /* HotKeyPad Items */
-#hotkeypad [data-hotkey] {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] {
   position: relative;
   display: flex;
   align-items: center;
@@ -126,12 +126,12 @@
   transition: background-color 0.15s;
 }
 
-#hotkeypad [data-hotkey][data-active] {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey][data-active] {
   background-color: var(--hotkeypad-bg-item-hover);
   outline: none;
 }
 
-#hotkeypad [data-hotkey]::before {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey]::before {
   content: "";
   position: absolute;
   left: 0;
@@ -141,34 +141,34 @@
   transition: background-color 0.15s;
 }
 
-#hotkeypad [data-active]::before {
+:is(#hotkeypad, [data-hotkeypad]) [data-active]::before {
   background-color: var(--hotkeypad-fg-muted);
 }
 
-#hotkeypad [data-hotkey] span {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] span {
   width: 1.5rem;
   height: 1.5rem;
   color: var(--hotkeypad-fg-muted);
 }
 
-#hotkeypad [data-hotkey] span:has(img) img {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] span:has(img) img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-#hotkeypad [data-hotkey] p {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] p {
   flex-grow: 1;
   color: var(--hotkeypad-fg-muted);
   text-transform: capitalize;
 }
 
-#hotkeypad [data-hotkey] div {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] div {
   display: flex;
   gap: 0.25rem;
 }
 
-#hotkeypad [data-hotkey] div span {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey] div span {
   padding-block: 2px;
   padding-inline: 6px;
   width: fit-content;
@@ -185,14 +185,14 @@
   text-transform: capitalize;
 }
 
-#hotkeypad [data-hotkey]:hover div span,
-#hotkeypad [data-active] div span {
+:is(#hotkeypad, [data-hotkeypad]) [data-hotkey]:hover div span,
+:is(#hotkeypad, [data-hotkeypad]) [data-active] div span {
   background-color: var(--hotkeypad-border-container);
   border-color: var(--hotkeypad-border-container-hover);
 }
 
 /* HotKeyPad Footer */
-#hotkeypad [data-container] footer {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] footer {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -200,14 +200,14 @@
   padding: 0.75rem 1.25rem;
 }
 
-#hotkeypad [data-container] footer p {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] footer p {
   display: flex;
   gap: 0.25rem;
   color: var(--hotkeypad-fg-muted);
   font-size: 0.875rem;
 }
 
-#hotkeypad [data-container] footer kbd {
+:is(#hotkeypad, [data-hotkeypad]) [data-container] footer kbd {
   padding-inline: 6px;
   color: var(--hotkeypad-fg-muted);
   background-color: var(--hotkeypad-bg-kbd);
@@ -220,7 +220,11 @@
 }
 
 @media screen and (min-width: 648px) {
-  #hotkeypad [data-container] footer {
+  :is(#hotkeypad, [data-hotkeypad]) [data-container] footer {
     justify-content: space-between;
   }
+}
+
+:is(#hotkeypad, [data-hotkeypad]) [hidden] {
+  display: none !important;
 }
